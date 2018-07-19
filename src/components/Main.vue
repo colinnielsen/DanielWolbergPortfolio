@@ -1,13 +1,15 @@
 <template>
   <div class="container">
+
   </div>
 </template>
 
 <script>
 //imports and requires -- it's a mess
 var THREE = require("three");
-const OrbitControls = require("three-orbit-controls")(THREE);
+// const OrbitControls = require("three-orbit-controls")(THREE);
 import TWEEN from "tween";
+import { SpriteText2D, textAlign } from "three-text2d";
 
 export default {
   name: "Main",
@@ -17,7 +19,9 @@ export default {
       renderer: null,
       scene: null,
       raycaster: null,
-      mouse: null
+      mouse: null,
+      clickableGroup: null,
+      backArrow: null
     };
   },
 
@@ -26,9 +30,10 @@ export default {
       //setting vars to the global variables
       var controls;
       ////////////
+      this.clickableGroup = new THREE.Group();
       this.mouse = new THREE.Vector2();
       this.raycaster = new THREE.Raycaster();
-      this.raycaster.linePrecision = 1;
+      this.raycaster.params.Points.threshold = 5;
       this.camera = new THREE.PerspectiveCamera(
         70,
         window.innerWidth / window.innerHeight,
@@ -42,6 +47,7 @@ export default {
 
       // scene setup
       this.camera.position.z = 100;
+      this.camera.position.x = 15;
       this.scene = new THREE.Scene();
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -50,68 +56,31 @@ export default {
       container.appendChild(this.renderer.domElement);
 
       //orbit controler
-      controls = new OrbitControls(this.camera, this.renderer.domElement);
+      // controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-      //controler settings
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.25;
-      controls.screenSpacePanning = false;
-      controls.minDistance = 25;
-      controls.maxDistance = 500;
-      controls.maxPolarAngle = Math.PI / 2;
+      // controler settings
+      // controls.enableDamping = true;
+      // controls.dampingFactor = 0.25;
+      // controls.screenSpacePanning = false;
+      // controls.minDistance = 25;
+      // controls.maxDistance = 500;
+      // controls.maxPolarAngle = Math.PI / 2;
+
+      //
+      // LINES ****//
+      //
 
       // materials
       var lineMaterial = new THREE.LineBasicMaterial({
         color: 0x000000,
         linewidth: 1
       });
-      var textureLoader = new THREE.TextureLoader();
-      // console.log(textureLoader);
-      //
-      //
-      //
-      textureLoader.load("../static/circle.png", texture => {
-        var material = new THREE.SpriteMaterial({ map: texture });
-        // Main.call(this, scene);
-        var width = material.map.image.width;
-        var height = material.map.image.height;
-
-        var circle1 = new THREE.Sprite(material);
-        circle1.position.y = 5;
-        circle1.name = "circle1";
-        var circle2 = new THREE.Sprite(material);
-        circle2.position.x = 30;
-        circle2.position.y = 40;
-        circle2.position.z = 5;
-        circle2.name = "circle2";
-        var circle3 = new THREE.Sprite(material);
-        circle3.position.x = 25;
-        circle3.position.y = 12;
-        circle2.name = "circle3";
-        var circle4 = new THREE.Sprite(material);
-        circle4.position.x = 50;
-        circle4.position.y = -5;
-        circle4.position.z = -20;
-        circle2.name = "circle4";
-        var circle5 = new THREE.Sprite(material);
-        circle5.position.x = -18;
-        circle5.position.y = 12;
-        circle5.position.z = 50;
-        circle2.name = "circle5";
-        var circle6 = new THREE.Sprite(material);
-        circle6.position.x = -30;
-        circle6.position.y = 40;
-        circle6.position.z = -20;
-        circle2.name = "circle6";
-
-        this.scene.add(circle1, circle2, circle3, circle4, circle5, circle6);
-      });
 
       //geometry
       var line1geometry = new THREE.Geometry();
       line1geometry.vertices.push(
         new THREE.Vector3(0, 5, 0),
-        new THREE.Vector3(-2, -100, 0)
+        new THREE.Vector3(-2, -65, 0)
       );
 
       var line2geometry = new THREE.Geometry();
@@ -140,7 +109,7 @@ export default {
 
       var line6geometry = new THREE.Geometry();
       line6geometry.vertices.push(
-        new THREE.Vector3(-35, 5, 0),
+        new THREE.Vector3(-15.9, 5, 44.2),
         new THREE.Vector3(-30, 40, -20)
       );
 
@@ -150,7 +119,6 @@ export default {
         new THREE.Vector3(-50, -100, 20)
       );
 
-      // LINES
       var line1 = new THREE.Line(line1geometry, lineMaterial);
       var line2 = new THREE.Line(line2geometry, lineMaterial);
       var line3 = new THREE.Line(line3geometry, lineMaterial);
@@ -159,14 +127,175 @@ export default {
       var line6 = new THREE.Line(line6geometry, lineMaterial);
       var line7 = new THREE.Line(line7geometry, lineMaterial);
 
-      // CIRCLES
+      //
+      // CIRCLES -- points ****//
+      //
 
-      // TEXT
-      // var sprite = new SpriteText2D("SPRITE", { align: textAlign.center, font: '40px Arial', fillStyle: '#000000', antialias: false })
-      // scene.add(sprite)
+      var pointsMaterial = new THREE.PointsMaterial({
+        map: new THREE.TextureLoader().load("../static/circle.png"),
+        color: 0x000000,
+        size: 4,
+        alphaTest: 0.3,
+        transparent: true,
+        opacity: 0.85
+      });
 
+      var point1Geometry = new THREE.BufferGeometry();
+      point1Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([0, 5, 0.05], 3, false)
+      );
+
+      var point2Geometry = new THREE.BufferGeometry();
+      point2Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([30, 40, 5], 3, false)
+      );
+      var point3Geometry = new THREE.BufferGeometry();
+      point3Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([25, 12, 0], 3, false)
+      );
+      var point4Geometry = new THREE.BufferGeometry();
+      point4Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([50, -5, -20], 3, false)
+      );
+      var point5Geometry = new THREE.BufferGeometry();
+      point5Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([-18, 12, 50], 3, false)
+      );
+      var point6Geometry = new THREE.BufferGeometry();
+      point6Geometry.addAttribute(
+        "position",
+        new THREE.Float32BufferAttribute([-30, 40, -20], 3, false)
+      );
+
+      var point1 = new THREE.Points(point1Geometry, pointsMaterial);
+      point1.name = "point1";
+      var point2 = new THREE.Points(point2Geometry, pointsMaterial);
+      point2.name = "point2";
+      var point3 = new THREE.Points(point3Geometry, pointsMaterial);
+      point3.name = "point3";
+      var point4 = new THREE.Points(point4Geometry, pointsMaterial);
+      point4.name = "point4";
+      var point5 = new THREE.Points(point5Geometry, pointsMaterial);
+      point5.name = "point5";
+      var point6 = new THREE.Points(point6Geometry, pointsMaterial);
+      point6.name = "point6";
+      this.clickableGroup.add(point1, point2, point3, point4, point5, point6);
+
+      //
+      //
+      //
+      //
+      //
+      // TEXT **** //
+      //
+      ///
+      //
+      //
+      //
+
+      var textLoader = new THREE.FontLoader();
+      var font1 = textLoader.load("../../static/handfontfat.json", font => {
+        var xMid, text;
+        var textShape = new THREE.BufferGeometry();
+        var matLite = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide
+        });
+        var shapes = font.generateShapes("about me.", 2.5);
+        var geometry = new THREE.ShapeGeometry(shapes);
+        geometry.computeBoundingBox();
+        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+        geometry.translate(xMid, 0, 0);
+        textShape.fromGeometry(geometry);
+        text = new THREE.Mesh(textShape, matLite);
+        text.position.x = 45;
+        text.position.y = 40;
+        text.position.z = 5;
+        text.name = "aboutme";
+        text.quaternion.copy(this.camera.quaternion);
+        this.clickableGroup.add(text);
+      });
+      var font2 = textLoader.load("../../static/handfontfat.json", font => {
+        var xMid, text;
+        var textShape = new THREE.BufferGeometry();
+        var matLite = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide
+        });
+        var shapes = font.generateShapes("portfolio.", 2.5);
+        var geometry = new THREE.ShapeGeometry(shapes);
+        geometry.computeBoundingBox();
+        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+        geometry.translate(xMid, 0, 0);
+        textShape.fromGeometry(geometry);
+        text = new THREE.Mesh(textShape, matLite);
+        text.position.x = -15;
+        text.position.y = 40;
+        text.position.z = -20;
+        text.name = "portfolio";
+        this.clickableGroup.add(text);
+      });
+
+      var font3 = textLoader.load("../../static/handfontfat.json", font => {
+        var xMid, text;
+        var textShape = new THREE.BufferGeometry();
+        var matLite = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 1,
+          side: THREE.DoubleSide
+        });
+        var shapes = font.generateShapes("contact.", 2.5);
+        var geometry = new THREE.ShapeGeometry(shapes);
+        geometry.computeBoundingBox();
+        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+        geometry.translate(xMid, 0, 0);
+        textShape.fromGeometry(geometry);
+        text = new THREE.Mesh(textShape, matLite);
+        text.position.x = 62;
+        text.position.y = -5;
+        text.position.z = -20;
+        text.name = "contact";
+        this.clickableGroup.add(text);
+      });
+
+      //// BACK ARROW
+      var backArrowMaterial = new THREE.LineBasicMaterial({
+        color: 0x000000,
+        linewidth: 5,
+        transparent: true,
+        opacity: 0
+      });
+      var backArrowGeometry = new THREE.Geometry();
+      backArrowGeometry.vertices.push(new THREE.Vector3(0, 2.5, 0));
+      backArrowGeometry.vertices.push(new THREE.Vector3(-2.5, 0, 0));
+      backArrowGeometry.vertices.push(new THREE.Vector3(0, -2.5, 0));
+      this.backArrow = new THREE.Line(backArrowGeometry, backArrowMaterial);
+      this.backArrow.position.set(-78, 60, -100);
+      this.backArrow.name = "backarrow";
+      var planeGeometry = new THREE.PlaneGeometry(5, 5, 32);
+      var planeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        transparent: true,
+        opacity: 0
+      });
+      var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.position.set(-79, 60, -100.1);
+      plane.name = "backarrow";
+
+      this.camera.add(this.backArrow, plane);
       // SCENE ADD
-
+      this.scene.add(this.camera);
+      this.scene.add(this.clickableGroup);
       this.scene.add(line1, line2, line3, line4, line5, line6);
       window.addEventListener("resize", this.onWindowResize, false);
       document.addEventListener("mousedown", this.onDocumentMouseDown, false);
@@ -176,70 +305,123 @@ export default {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     },
+
+    ///
+    //
+    //    E V E N T   H A N D L E R S
+    //      c l i c k  e v e n t s
+    //
+    //
+    //
+
     onDocumentMouseDown: function(event) {
       event.preventDefault();
       this.mouse.x =
         event.clientX / this.renderer.domElement.clientWidth * 2 - 1;
       this.mouse.y =
         -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
-      this.raycaster.setFromCamera(this.mouse, this.camera);
-      var intersects = this.raycaster.intersectObjects(this.scene.children);
+      this.mouse.z = 1;
+
+      //mouse clicks
+      var clickable = [
+        ...this.clickableGroup.children,
+        ...this.camera.children
+      ];
+      var intersects = this.raycaster.intersectObjects(
+        clickable
+        // this.clickableGroup.children && this.camera.children
+      );
+
       if (intersects.length > 0) {
+        console.log(intersects[0]);
         switch (intersects[0].object.name) {
-          case "circle1":
+          case "point1":
             console.log("its the first button");
             break;
-          case "circle2":
+          case "point2" || "aboutme":
+            this.showBackArrow();
             new TWEEN.Tween(this.camera.position)
               .to(
                 {
-                  x: 35,
+                  x: 40,
                   y: 30,
                   z: 43
                 },
-                2000
+                1500
               )
               .easing(TWEEN.Easing.Quadratic.Out)
               .start();
             break;
-          case "circle3":
+          case "point4" || "contact":
+            new TWEEN.Tween(this.camera.position)
+              .to(
+                {
+                  x: 65,
+                  y: -20,
+                  z: 23
+                },
+                1500
+              )
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .start();
+            break;
+          case "point6":
+            new TWEEN.Tween(this.camera.position)
+              .to(
+                {
+                  x: -10,
+                  y: 28,
+                  z: 20
+                },
+                1500
+              )
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .start();
+            break;
+          case "backarrow":
+            this.hideBackArrow();
+            new TWEEN.Tween(this.camera.position)
+              .to(
+                {
+                  x: 15,
+                  y: 0,
+                  z: 100
+                },
+                1000
+              )
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .start();
+            break;
         }
       }
     },
-    createCircles: function(texture) {
-      var material = new THREE.SpriteMaterial({ map: texture });
-
-      var width = material.map.image.width;
-      var height = material.map.image.height;
-
-      var circle1 = new THREE.Sprite(material);
-      circle1.position.y = 5;
-      circle1.name = "circle1";
-      var circle2 = new THREE.Sprite(material);
-      circle2.position.x = 30;
-      circle2.position.y = 40;
-      circle2.position.z = 5;
-      circle2.name = "circle2";
-      var circle3 = new THREE.Sprite(material);
-      circle3.position.x = 25;
-      circle3.position.y = 12;
-      circle2.name = "circle2";
-      var circle4 = new THREE.Sprite(material);
-      circle4.position.x = 50;
-      circle4.position.y = -5;
-      circle4.position.z = -20;
-      circle2.name = "circle2";
-      var circle5 = new THREE.Sprite(material);
-      circle5.position.x = -18;
-      circle5.position.y = 12;
-      circle5.position.z = 50;
-      circle2.name = "circle2";
-      var circle6 = new THREE.Sprite(material);
-      circle6.position.x = -30;
-      circle6.position.y = 40;
-      circle6.position.z = -20;
-      circle2.name = "circle2";
-      this.scene.add(circle1, circle2, circle3, circle4, circle5, circle6);
+    hideBackArrow: function(event) {
+      this.backArrow.material.transparent = true;
+      var tweenoff = new TWEEN.Tween(this.backArrow.material)
+        .to(
+          {
+            opacity: 0
+          },
+          1000
+        )
+        .onComplete(() => {
+          this.backArrow.visible = false;
+        });
+      tweenoff.start();
+    },
+    showBackArrow: function() {
+      this.backArrow.visible = true;
+      var tweenon = new TWEEN.Tween(this.backArrow.material)
+        .to(
+          {
+            opacity: 1
+          },
+          2000
+        )
+        .onComplete(() => {
+          this.backArrow.material.transparent = false;
+        });
+      tweenon.start();
     },
     animate: function() {
       requestAnimationFrame(this.animate);
@@ -247,6 +429,7 @@ export default {
     },
     render: function() {
       TWEEN.update();
+      this.raycaster.setFromCamera(this.mouse, this.camera);
       this.renderer.render(this.scene, this.camera);
     }
   },
