@@ -1,13 +1,18 @@
 <template>
-  <div class="container">
-
+    <div class="aboutmeinfo">
+      <p>Hello <br><br> Im Daniel. <br><br>
+      I am currently studying <br>at CU denver in archetecture
+      <br><br>
+      feel free to poke around :)
+      </p>
   </div>
 </template>
 
 <script>
 //imports and requires -- it's a mess
 var THREE = require("three");
-// const OrbitControls = require("three-orbit-controls")(THREE);
+
+const OrbitControls = require("three-orbit-controls")(THREE);
 import TWEEN from "tween";
 import { SpriteText2D, textAlign } from "three-text2d";
 
@@ -21,7 +26,8 @@ export default {
       raycaster: null,
       mouse: null,
       clickableGroup: null,
-      backArrow: null
+      backArrow: null,
+      aboutme: null
     };
   },
 
@@ -56,15 +62,15 @@ export default {
       container.appendChild(this.renderer.domElement);
 
       //orbit controler
-      // controls = new OrbitControls(this.camera, this.renderer.domElement);
+      controls = new OrbitControls(this.camera, this.renderer.domElement);
 
       // controler settings
-      // controls.enableDamping = true;
-      // controls.dampingFactor = 0.25;
-      // controls.screenSpacePanning = false;
-      // controls.minDistance = 25;
-      // controls.maxDistance = 500;
-      // controls.maxPolarAngle = Math.PI / 2;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.25;
+      controls.screenSpacePanning = false;
+      controls.minDistance = 25;
+      controls.maxDistance = 500;
+      controls.maxPolarAngle = Math.PI / 2;
 
       //
       // LINES ****//
@@ -132,24 +138,24 @@ export default {
       //
 
       var pointsMaterial = new THREE.PointsMaterial({
-        map: new THREE.TextureLoader().load("../static/circle.png"),
-        color: 0x000000,
-        size: 4,
-        alphaTest: 0.3,
+        // map: new THREE.TextureLoader().load("../static/circle.png"),
+        color: 0xffffff,
+        size: 100,
         transparent: true,
-        opacity: 0.85
+        opacity: 0,
+        sizeAttenuation: false
       });
 
       var point1Geometry = new THREE.BufferGeometry();
       point1Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([0, 5, 0.05], 3, false)
+        new THREE.Float32BufferAttribute([0, 5, 0], 3, false)
       );
 
       var point2Geometry = new THREE.BufferGeometry();
       point2Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([30, 40, 5], 3, false)
+        new THREE.Float32BufferAttribute([40, 40, 2], 3, false)
       );
       var point3Geometry = new THREE.BufferGeometry();
       point3Geometry.addAttribute(
@@ -159,7 +165,7 @@ export default {
       var point4Geometry = new THREE.BufferGeometry();
       point4Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([50, -5, -20], 3, false)
+        new THREE.Float32BufferAttribute([60, -5, -20], 3, false)
       );
       var point5Geometry = new THREE.BufferGeometry();
       point5Geometry.addAttribute(
@@ -169,7 +175,7 @@ export default {
       var point6Geometry = new THREE.BufferGeometry();
       point6Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([-30, 40, -20], 3, false)
+        new THREE.Float32BufferAttribute([-20, 40, -22], 3, false)
       );
 
       var point1 = new THREE.Points(point1Geometry, pointsMaterial);
@@ -199,14 +205,16 @@ export default {
       //
 
       var textLoader = new THREE.FontLoader();
-      var font1 = textLoader.load("../../static/handfontfat.json", font => {
+
+      var aboutme = textLoader.load("../../static/handfontfat.json", font => {
         var xMid, text;
         var textShape = new THREE.BufferGeometry();
         var matLite = new THREE.MeshBasicMaterial({
           color: 0x000000,
           transparent: true,
           opacity: 1,
-          side: THREE.DoubleSide
+          side: THREE.DoubleSide,
+          sizeAttenuation: false
         });
         var shapes = font.generateShapes("about me.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -214,22 +222,24 @@ export default {
         xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
         geometry.translate(xMid, 0, 0);
         textShape.fromGeometry(geometry);
-        text = new THREE.Mesh(textShape, matLite);
-        text.position.x = 45;
-        text.position.y = 40;
-        text.position.z = 5;
-        text.name = "aboutme";
-        text.quaternion.copy(this.camera.quaternion);
-        this.clickableGroup.add(text);
+        this.aboutme = new THREE.Mesh(textShape, matLite);
+        this.aboutme.position.x = 45;
+        this.aboutme.position.y = 40;
+        this.aboutme.position.z = 3;
+        this.aboutme.name = "aboutme";
+        this.aboutme.quaternion.copy(this.camera.quaternion);
+        this.clickableGroup.add(this.aboutme);
       });
-      var font2 = textLoader.load("../../static/handfontfat.json", font => {
+
+      var portfolio = textLoader.load("../../static/handfontfat.json", font => {
         var xMid, text;
         var textShape = new THREE.BufferGeometry();
         var matLite = new THREE.MeshBasicMaterial({
           color: 0x000000,
           transparent: true,
           opacity: 1,
-          side: THREE.DoubleSide
+          side: THREE.DoubleSide,
+          sizeAttenuation: false
         });
         var shapes = font.generateShapes("portfolio.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -238,21 +248,22 @@ export default {
         geometry.translate(xMid, 0, 0);
         textShape.fromGeometry(geometry);
         text = new THREE.Mesh(textShape, matLite);
-        text.position.x = -15;
+        text.position.x = -13.5;
         text.position.y = 40;
         text.position.z = -20;
         text.name = "portfolio";
         this.clickableGroup.add(text);
       });
 
-      var font3 = textLoader.load("../../static/handfontfat.json", font => {
+      var contact = textLoader.load("../../static/handfontfat.json", font => {
         var xMid, text;
         var textShape = new THREE.BufferGeometry();
         var matLite = new THREE.MeshBasicMaterial({
           color: 0x000000,
           transparent: true,
           opacity: 1,
-          side: THREE.DoubleSide
+          side: THREE.DoubleSide,
+          sizeAttenuation: false
         });
         var shapes = font.generateShapes("contact.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -268,7 +279,10 @@ export default {
         this.clickableGroup.add(text);
       });
 
+      //
       //// BACK ARROW
+      //
+
       var backArrowMaterial = new THREE.LineBasicMaterial({
         color: 0x000000,
         linewidth: 5,
@@ -293,11 +307,24 @@ export default {
       plane.name = "backarrow";
 
       this.camera.add(this.backArrow, plane);
+
+      ////
+      // //// M O D E L  L O A D E R
+      ////
+
+      var objectLoader = new THREE.ObjectLoader();
+      objectLoader.load("../../static/depressionModel.json", obj => {
+        this.scene.add(obj);
+      });
+
+      //
       // SCENE ADD
+      //
+
       this.scene.add(this.camera);
       this.scene.add(this.clickableGroup);
       this.scene.add(line1, line2, line3, line4, line5, line6);
-      window.addEventListener("resize", this.onWindowResize, false);
+      window.addEventListener("resize", this.onWindowResize);
       document.addEventListener("mousedown", this.onDocumentMouseDown, false);
     },
     onWindowResize: function() {
@@ -327,32 +354,38 @@ export default {
         ...this.clickableGroup.children,
         ...this.camera.children
       ];
-      var intersects = this.raycaster.intersectObjects(
-        clickable
-        // this.clickableGroup.children && this.camera.children
-      );
+      var intersects = this.raycaster.intersectObjects(clickable, true);
 
       if (intersects.length > 0) {
-        console.log(intersects[0]);
+        // console.log(intersects[0]);
         switch (intersects[0].object.name) {
           case "point1":
             console.log("its the first button");
             break;
           case "point2" || "aboutme":
             this.showBackArrow();
+            document
+              .querySelector(".aboutmeinfo")
+              .setAttribute("class", "aboutmeinfo customFadeIn");
             new TWEEN.Tween(this.camera.position)
               .to(
                 {
-                  x: 40,
-                  y: 30,
-                  z: 43
+                  x: 45,
+                  y: 28,
+                  z: 35
                 },
                 1500
               )
               .easing(TWEEN.Easing.Quadratic.Out)
               .start();
+            this.camera.updateProjectionMatrix();
+
             break;
           case "point4" || "contact":
+            document
+              .querySelector(".aboutmeinfo")
+              .setAttribute("class", "aboutmeinfo");
+            this.showBackArrow();
             new TWEEN.Tween(this.camera.position)
               .to(
                 {
@@ -364,8 +397,14 @@ export default {
               )
               .easing(TWEEN.Easing.Quadratic.Out)
               .start();
+            this.camera.updateProjectionMatrix();
+
             break;
           case "point6":
+            document
+              .querySelector(".aboutmeinfo")
+              .setAttribute("class", "aboutmeinfo");
+            this.showBackArrow();
             new TWEEN.Tween(this.camera.position)
               .to(
                 {
@@ -377,9 +416,14 @@ export default {
               )
               .easing(TWEEN.Easing.Quadratic.Out)
               .start();
+            this.camera.updateProjectionMatrix();
+
             break;
           case "backarrow":
             this.hideBackArrow();
+            document
+              .querySelector(".aboutmeinfo")
+              .setAttribute("class", "aboutmeinfo");
             new TWEEN.Tween(this.camera.position)
               .to(
                 {
@@ -391,11 +435,13 @@ export default {
               )
               .easing(TWEEN.Easing.Quadratic.Out)
               .start();
+            this.camera.updateProjectionMatrix();
+
             break;
         }
       }
     },
-    hideBackArrow: function(event) {
+    hideBackArrow: function() {
       this.backArrow.material.transparent = true;
       var tweenoff = new TWEEN.Tween(this.backArrow.material)
         .to(
@@ -416,7 +462,7 @@ export default {
           {
             opacity: 1
           },
-          2000
+          1000
         )
         .onComplete(() => {
           this.backArrow.material.transparent = false;
@@ -442,4 +488,37 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+@font-face {
+  font-family: "handfont";
+  src: url("../../static/handfont.ttf");
+}
+@-webkit-keyframes customFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.aboutmeinfo {
+  opacity: 0;
+  font-family: "handfont";
+  position: absolute;
+  line-height: 1.8rem;
+  font-size: 1.3rem;
+  z-index: 2;
+  margin-left: 40%;
+  margin-top: 30vh;
+}
+
+.customFadeIn {
+  -webkit-animation: customFadeIn;
+  animation: customFadeIn;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  -webkit-animation-duration: 2.5s;
+  animation-duration: 2.5s;
+  -webkit-animation-delay: 1.4s;
+  animation-delay: 1.4s;
+}
 </style>
