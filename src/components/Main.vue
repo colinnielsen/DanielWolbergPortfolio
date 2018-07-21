@@ -26,8 +26,11 @@ export default {
       raycaster: null,
       mouse: null,
       clickableGroup: null,
+      lineGroup: null,
       backArrow: null,
-      aboutme: null
+      aboutme: null,
+      portfolio: null,
+      modelGroup: null
     };
   },
 
@@ -47,13 +50,19 @@ export default {
         1000
       );
 
+      //
       //// adding container
+      //
+
       var container = document.createElement("div");
       document.body.appendChild(container);
 
+      //
       // scene setup
+      //
+
       this.camera.position.z = 100;
-      this.camera.position.x = 15;
+      this.camera.position.x = 0;
       this.scene = new THREE.Scene();
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -62,15 +71,15 @@ export default {
       container.appendChild(this.renderer.domElement);
 
       //orbit controler
-      controls = new OrbitControls(this.camera, this.renderer.domElement);
+      // controls = new OrbitControls(this.camera, this.renderer.domElement);
 
       // controler settings
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.25;
-      controls.screenSpacePanning = false;
-      controls.minDistance = 25;
-      controls.maxDistance = 500;
-      controls.maxPolarAngle = Math.PI / 2;
+      // controls.enableDamping = true;
+      // controls.dampingFactor = 0.25;
+      // controls.screenSpacePanning = false;
+      // controls.minDistance = 25;
+      // controls.maxDistance = 500;
+      // controls.maxPolarAngle = Math.PI / 2;
 
       //
       // LINES ****//
@@ -79,7 +88,7 @@ export default {
       // materials
       var lineMaterial = new THREE.LineBasicMaterial({
         color: 0x000000,
-        linewidth: 1
+        linewidth: 2
       });
 
       //geometry
@@ -119,32 +128,22 @@ export default {
         new THREE.Vector3(-30, 40, -20)
       );
 
-      var line7geometry = new THREE.Geometry();
-      line7geometry.vertices.push(
-        new THREE.Vector3(-150, 50, 0),
-        new THREE.Vector3(-50, -100, 20)
-      );
-
       var line1 = new THREE.Line(line1geometry, lineMaterial);
       var line2 = new THREE.Line(line2geometry, lineMaterial);
       var line3 = new THREE.Line(line3geometry, lineMaterial);
       var line4 = new THREE.Line(line4geometry, lineMaterial);
       var line5 = new THREE.Line(line5geometry, lineMaterial);
       var line6 = new THREE.Line(line6geometry, lineMaterial);
-      var line7 = new THREE.Line(line7geometry, lineMaterial);
+
+      this.lineGroup = new THREE.Group();
+      this.lineGroup.add(line1, line2, line3, line4, line5, line6);
 
       //
       // CIRCLES -- points ****//
       //
 
       var pointsMaterial = new THREE.PointsMaterial({
-        // map: new THREE.TextureLoader().load("../static/circle.png"),
-        color: 0xffffff,
-        size: 100,
-        transparent: true,
-        opacity: 0,
-        sizeAttenuation: false
-      });
+        map: new THREE.TextureLoader().load("../static/circle.png"),color: 0x000000,size: 1,transparent: true,opacity: 0.85,sizeAttenuation: true});
 
       var point1Geometry = new THREE.BufferGeometry();
       point1Geometry.addAttribute(
@@ -155,7 +154,7 @@ export default {
       var point2Geometry = new THREE.BufferGeometry();
       point2Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([40, 40, 2], 3, false)
+        new THREE.Float32BufferAttribute([30, 40, 5], 3, false)
       );
       var point3Geometry = new THREE.BufferGeometry();
       point3Geometry.addAttribute(
@@ -165,7 +164,7 @@ export default {
       var point4Geometry = new THREE.BufferGeometry();
       point4Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([60, -5, -20], 3, false)
+        new THREE.Float32BufferAttribute([50, -5, -20], 3, false)
       );
       var point5Geometry = new THREE.BufferGeometry();
       point5Geometry.addAttribute(
@@ -175,7 +174,7 @@ export default {
       var point6Geometry = new THREE.BufferGeometry();
       point6Geometry.addAttribute(
         "position",
-        new THREE.Float32BufferAttribute([-20, 40, -22], 3, false)
+        new THREE.Float32BufferAttribute([-30, 40, -20], 3, false)
       );
 
       var point1 = new THREE.Points(point1Geometry, pointsMaterial);
@@ -207,123 +206,117 @@ export default {
       var textLoader = new THREE.FontLoader();
 
       var aboutme = textLoader.load("../../static/handfontfat.json", font => {
-        var xMid, text;
         var textShape = new THREE.BufferGeometry();
-        var matLite = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 1,
-          side: THREE.DoubleSide,
-          sizeAttenuation: false
-        });
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide});
         var shapes = font.generateShapes("about me.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
-        geometry.computeBoundingBox();
-        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
-        geometry.translate(xMid, 0, 0);
         textShape.fromGeometry(geometry);
-        this.aboutme = new THREE.Mesh(textShape, matLite);
-        this.aboutme.position.x = 45;
-        this.aboutme.position.y = 40;
-        this.aboutme.position.z = 3;
+        this.aboutme = new THREE.Mesh(textShape, material);
+        this.aboutme.position.set(45, 40, 3);
         this.aboutme.name = "aboutme";
-        this.aboutme.quaternion.copy(this.camera.quaternion);
-        this.clickableGroup.add(this.aboutme);
+        //
+        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
+        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.set(35, 41, 2.9);
+        plane.name = "aboutme";
+
+        this.clickableGroup.add(this.aboutme, plane);
       });
 
       var portfolio = textLoader.load("../../static/handfontfat.json", font => {
-        var xMid, text;
         var textShape = new THREE.BufferGeometry();
-        var matLite = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 1,
-          side: THREE.DoubleSide,
-          sizeAttenuation: false
-        });
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide});
         var shapes = font.generateShapes("portfolio.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
-        geometry.computeBoundingBox();
-        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
-        geometry.translate(xMid, 0, 0);
         textShape.fromGeometry(geometry);
-        text = new THREE.Mesh(textShape, matLite);
-        text.position.x = -13.5;
-        text.position.y = 40;
-        text.position.z = -20;
-        text.name = "portfolio";
-        this.clickableGroup.add(text);
+        this.portfolio = new THREE.Mesh(textShape, material);
+        this.portfolio.position.set(-13.5,40,20)
+        this.portfolio.name = "portfolio";
+        //
+        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
+        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 1});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.set(-12, 41, -20.1);
+        plane.name = "portfolio";
+        this.clickableGroup.add(this.portfolio, plane);
       });
 
       var contact = textLoader.load("../../static/handfontfat.json", font => {
-        var xMid, text;
         var textShape = new THREE.BufferGeometry();
-        var matLite = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 1,
-          side: THREE.DoubleSide,
-          sizeAttenuation: false
-        });
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide})
         var shapes = font.generateShapes("contact.", 2.5);
         var geometry = new THREE.ShapeGeometry(shapes);
-        geometry.computeBoundingBox();
-        xMid = -0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
-        geometry.translate(xMid, 0, 0);
         textShape.fromGeometry(geometry);
-        text = new THREE.Mesh(textShape, matLite);
-        text.position.x = 62;
-        text.position.y = -5;
-        text.position.z = -20;
+        var text = new THREE.Mesh(textShape, material);
+        text.position.set(62,-5,20)
         text.name = "contact";
-        this.clickableGroup.add(text);
+
+        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
+        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.set(60, -5, -20.1);
+        plane.name = "contact";
+        this.clickableGroup.add(text, plane);
       });
 
       //
       //// BACK ARROW
       //
 
-      var backArrowMaterial = new THREE.LineBasicMaterial({
-        color: 0x000000,
-        linewidth: 5,
-        transparent: true,
-        opacity: 0
-      });
+      var backArrowMaterial = new THREE.LineBasicMaterial({color: 0x000000,linewidth: 5,transparent: true,opacity: 0});
       var backArrowGeometry = new THREE.Geometry();
       backArrowGeometry.vertices.push(new THREE.Vector3(0, 2.5, 0));
       backArrowGeometry.vertices.push(new THREE.Vector3(-2.5, 0, 0));
       backArrowGeometry.vertices.push(new THREE.Vector3(0, -2.5, 0));
       this.backArrow = new THREE.Line(backArrowGeometry, backArrowMaterial);
       this.backArrow.position.set(-78, 60, -100);
-      this.backArrow.name = "backarrow";
+      // plane
       var planeGeometry = new THREE.PlaneGeometry(5, 5, 32);
-      var planeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffff00,
-        transparent: true,
-        opacity: 0
-      });
+      var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffff00,transparent: true,opacity: 0});
       var plane = new THREE.Mesh(planeGeometry, planeMaterial);
       plane.position.set(-79, 60, -100.1);
       plane.name = "backarrow";
 
       this.camera.add(this.backArrow, plane);
 
-      ////
+      //   //
       // //// M O D E L  L O A D E R
-      ////
+      //   //
+
+      this.modelGroup = new THREE.Group();
 
       var objectLoader = new THREE.ObjectLoader();
-      objectLoader.load("../../static/depressionModel.json", obj => {
-        this.scene.add(obj);
+      objectLoader.load("../../static/depressionModel.json", model => {
+        model.scale.set(0.01, 0.01, 0.01);
+        model.position.set(-27, 18, -50);
+        model.name = "depression";
+        this.modelGroup.add(model);
       });
+
+      objectLoader.load("../../static/wanderModel.json", model => {
+        model.scale.set(0.15, 0.15, 0.15);
+        model.rotation.x = -Math.PI / 2;
+        model.position.set(-10, 18, -46);
+        model.name = "wander";
+        this.modelGroup.add(model);
+      });
+
+      //
+      //  ////  L I G H T S
+      //
+
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5, 1000);
+      directionalLight.position.set(-20, 50, 0);
+      directionalLight.target.position.set(-27, 18, -50);
+      directionalLight.target.updateMatrixWorld();
 
       //
       // SCENE ADD
       //
 
-      this.scene.add(this.camera);
-      this.scene.add(this.clickableGroup);
-      this.scene.add(line1, line2, line3, line4, line5, line6);
+      this.scene.add(this.camera, this.clickableGroup,this.lineGroup,this.modelGroup,directionalLight);
+      //event listeners
       window.addEventListener("resize", this.onWindowResize);
       document.addEventListener("mousedown", this.onDocumentMouseDown, false);
     },
@@ -343,132 +336,75 @@ export default {
 
     onDocumentMouseDown: function(event) {
       event.preventDefault();
-      this.mouse.x =
-        event.clientX / this.renderer.domElement.clientWidth * 2 - 1;
-      this.mouse.y =
-        -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
-      this.mouse.z = 1;
-
-      //mouse clicks
+      this.setMouse()
       var clickable = [
         ...this.clickableGroup.children,
         ...this.camera.children
       ];
       var intersects = this.raycaster.intersectObjects(clickable, true);
-
       if (intersects.length > 0) {
-        // console.log(intersects[0]);
         switch (intersects[0].object.name) {
           case "point1":
-            console.log("its the first button");
             break;
           case "point2" || "aboutme":
             this.showBackArrow();
-            document
-              .querySelector(".aboutmeinfo")
-              .setAttribute("class", "aboutmeinfo customFadeIn");
+            this.fadeInText("aboutmeinfo");
             new TWEEN.Tween(this.camera.position)
-              .to(
-                {
-                  x: 45,
-                  y: 28,
-                  z: 35
-                },
-                1500
-              )
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start();
+              .to({ x: 45, y: 28, z: 35 }, 1500).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
-
             break;
+
           case "point4" || "contact":
-            document
-              .querySelector(".aboutmeinfo")
-              .setAttribute("class", "aboutmeinfo");
             this.showBackArrow();
+            this.fadeOutText("aboutmeinfo")
             new TWEEN.Tween(this.camera.position)
-              .to(
-                {
-                  x: 65,
-                  y: -20,
-                  z: 23
-                },
-                1500
-              )
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start();
+              .to({ x: 65, y: -20, z: 23 }, 1500).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
-
             break;
-          case "point6":
-            document
-              .querySelector(".aboutmeinfo")
-              .setAttribute("class", "aboutmeinfo");
+
+          case "point6" || "portfolio":
             this.showBackArrow();
+            this.fadeOutText("aboutmeinfo")
+            this.showModels();
             new TWEEN.Tween(this.camera.position)
-              .to(
-                {
-                  x: -10,
-                  y: 28,
-                  z: 20
-                },
-                1500
-              )
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start();
+              .to({x: -10,y: 28,z: 20},1500).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
-
             break;
+
           case "backarrow":
             this.hideBackArrow();
-            document
-              .querySelector(".aboutmeinfo")
-              .setAttribute("class", "aboutmeinfo");
+            this.fadeOutText("aboutmeinfo")
             new TWEEN.Tween(this.camera.position)
-              .to(
-                {
-                  x: 15,
-                  y: 0,
-                  z: 100
-                },
-                1000
-              )
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .start();
+              .to({x: 15,y: 0,z: 100},1000).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
-
             break;
         }
       }
     },
+    setMouse: function(){
+      this.mouse.x = event.clientX / this.renderer.domElement.clientWidth * 2 - 1;
+      this.mouse.y = -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
+      this.mouse.z = 1;
+    },
     hideBackArrow: function() {
       this.backArrow.material.transparent = true;
       var tweenoff = new TWEEN.Tween(this.backArrow.material)
-        .to(
-          {
-            opacity: 0
-          },
-          1000
-        )
-        .onComplete(() => {
-          this.backArrow.visible = false;
-        });
+        .to({opacity: 0},1000).onComplete(() => this.backArrow.visible = false);
       tweenoff.start();
     },
     showBackArrow: function() {
       this.backArrow.visible = true;
       var tweenon = new TWEEN.Tween(this.backArrow.material)
-        .to(
-          {
-            opacity: 1
-          },
-          1000
-        )
-        .onComplete(() => {
-          this.backArrow.material.transparent = false;
-        });
+        .to({opacity: 1},1000).onComplete(() => this.backArrow.material.transparent = false);
       tweenon.start();
     },
+    fadeInText: function(target) {
+      document.querySelector(".aboutmeinfo").setAttribute("class", `${target} customFadeIn`);
+    },
+    fadeOutText: function(target){
+      document.querySelector(".aboutmeinfo").setAttribute("class", target);
+    },
+    showModels: function() {},
     animate: function() {
       requestAnimationFrame(this.animate);
       this.render();
@@ -492,7 +428,7 @@ export default {
   font-family: "handfont";
   src: url("../../static/handfont.ttf");
 }
-@-webkit-keyframes customFadeIn {
+@keyframes customFadeIn {
   from {
     opacity: 0;
   }

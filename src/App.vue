@@ -16,6 +16,9 @@ export default {
 </script>
 
 <style>
+#id {
+  margin: 0;
+}
 body {
   margin: 0;
 }
