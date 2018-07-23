@@ -12,8 +12,8 @@
 //imports and requires -- it's a mess
 var THREE = require("three");
 // import cloud from "./cloud.js"
-// import FirstPersonControls from './FirstPersonControls'
-const OrbitControls = require("three-orbit-controls")(THREE);
+// const OrbitControls = require("three-orbit-controls")(THREE);
+require('three-first-person-controls')(THREE);
 import TWEEN from "tween";
 
 export default {
@@ -49,8 +49,8 @@ export default {
       this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight ,1,10000);
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      // this.controls = new FirstPersonControls(this.camera, this.renderer.domElement);
-      // this.clock = new THREE.Clock();
+      this.controls = new THREE.FirstPersonControls(this.camera);
+      this.clock = new THREE.Clock(true);
       //
       //// adding container
       //
@@ -67,23 +67,28 @@ export default {
       this.camera.position.x = 10;
       this.camera.position.y = 20;
       // this.controls.update();
+      
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setClearColor(0xefede7);
       container.appendChild(this.renderer.domElement);
       //orbit controler
 
       // controler settings
+      
       	// this.controls.movementSpeed = 1000;
 				// this.controls.lookSpeed = 0.125;
 				// this.controls.lookVertical = true;
+      this.controls.lookSpeed = 0.1;
+      this.controls.movementSpeed = 200;
       // this.controls.enableDamping = true;
       // this.controls.dampingFactor = 0.25;
       // this.controls.screenSpacePanning = true;
       // this.controls.minDistance = 25;
       // this.controls.maxDistance = 5000;
       // this.controls.maxPolarAngle = Math.PI / 2;
-      // this.controls.enabled = false
-      // console.log(this.controls)
+      this.controls.enabled = false
+      this.controls.update()
+      console.log(this.controls)
       //
       // LINES ****//
       //
@@ -310,9 +315,9 @@ export default {
       });
 
       objectLoader.load("../../static/wanderModel.json", model => {
-        model.scale.set(4, 4, 4);
+        model.scale.set(.15, .15, .15); 
         model.rotation.x = -Math.PI / 2;
-        model.position.set(-10, 18, -4000);
+        model.position.set(-10, 18, -50);
         model.children[0].name = "model";
         model.children[0].material.transparent = true;
         model.children[0].material.opacity = 0;
@@ -341,7 +346,7 @@ export default {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.controls.handleResize();
+      // this.controls.handleResize();
     },
 
     ///
@@ -393,6 +398,7 @@ export default {
             break;
 
           case "backarrow":
+            this.controls.enabled = false
             this.hideBackArrow();
             this.fadeOutText("aboutmeinfo")
             new TWEEN.Tween(this.camera.position)
@@ -402,10 +408,10 @@ export default {
 
           case "model":
             new TWEEN.Tween(this.camera.position)
-              .to({x: -10,y: 20,z: -3500},1000).easing(TWEEN.Easing.Quadratic.Out).start();
-            this.camera.updateProjectionMatrix();
-            // this.controls.enabled = true;
-            this.hideObjects = new TWEEN.Tween(this).to({hideObjects:0},1500).start().onComplete(()=> console.log(this.hideObjects))
+            .to({x: -10,y: 20,z: -10},1000).easing(TWEEN.Easing.Quadratic.Out).start().onComplete(()=> this.controls.enabled = true);
+
+            // this.hideObjects = new TWEEN.Tween(this).to({hideObjects:0},1500).start()
+            // this.camera.updateProjectionMatrix();
         }
       }
     },
@@ -442,7 +448,7 @@ export default {
     },
     render: function() {
       // this.controls.update();
-      // this.controls.update( this.clock.getDelta() );
+      this.controls.update( this.clock.getDelta() );
       TWEEN.update();
       this.renderer.render(this.scene, this.camera);
     }
