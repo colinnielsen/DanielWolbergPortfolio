@@ -3,7 +3,7 @@
       <p>Hello <br><br> Im Daniel. <br><br>
       I am currently studying <br>at CU denver in archetecture
       <br><br>
-      feel free to poke around :)
+      feel free to poke around !
       </p>
   </div>
 </template>
@@ -11,15 +11,16 @@
 <script>
 //imports and requires -- it's a mess
 var THREE = require("three");
-
+// import cloud from "./cloud.js"
+// import FirstPersonControls from './FirstPersonControls'
 const OrbitControls = require("three-orbit-controls")(THREE);
 import TWEEN from "tween";
-import { SpriteText2D, textAlign } from "three-text2d";
 
 export default {
   name: "Main",
   data() {
     return {
+      controls: null,
       camera: null,
       renderer: null,
       scene: null,
@@ -30,29 +31,30 @@ export default {
       backArrow: null,
       aboutme: null,
       portfolio: null,
-      modelGroup: null
+      modelGroup: null,
+      hideObjects: .7,
+      clock: null
     };
   },
 
   methods: {
     threeInit: function() {
       //setting vars to the global variables
-      var controls;
       ////////////
+      this.scene = new THREE.Scene();
       this.clickableGroup = new THREE.Group();
       this.mouse = new THREE.Vector2();
       this.raycaster = new THREE.Raycaster();
-      this.raycaster.params.Points.threshold = 5;
-      this.camera = new THREE.PerspectiveCamera(
-        70,
-        window.innerWidth / window.innerHeight,
-        1,
-        1000
-      );
-
+      this.raycaster.params.Points.threshold = .5;
+      this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight ,1,10000);
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      // this.controls = new FirstPersonControls(this.camera, this.renderer.domElement);
+      // this.clock = new THREE.Clock();
       //
       //// adding container
       //
+
 
       var container = document.createElement("div");
       document.body.appendChild(container);
@@ -61,26 +63,27 @@ export default {
       // scene setup
       //
 
-      this.camera.position.z = 100;
-      this.camera.position.x = 0;
-      this.scene = new THREE.Scene();
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.camera.position.z = 60;
+      this.camera.position.x = 10;
+      this.camera.position.y = 20;
+      // this.controls.update();
       this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.renderer.setClearColor(0xffffff);
+      this.renderer.setClearColor(0xefede7);
       container.appendChild(this.renderer.domElement);
-
       //orbit controler
-      // controls = new OrbitControls(this.camera, this.renderer.domElement);
 
       // controler settings
-      // controls.enableDamping = true;
-      // controls.dampingFactor = 0.25;
-      // controls.screenSpacePanning = false;
-      // controls.minDistance = 25;
-      // controls.maxDistance = 500;
-      // controls.maxPolarAngle = Math.PI / 2;
-
+      	// this.controls.movementSpeed = 1000;
+				// this.controls.lookSpeed = 0.125;
+				// this.controls.lookVertical = true;
+      // this.controls.enableDamping = true;
+      // this.controls.dampingFactor = 0.25;
+      // this.controls.screenSpacePanning = true;
+      // this.controls.minDistance = 25;
+      // this.controls.maxDistance = 5000;
+      // this.controls.maxPolarAngle = Math.PI / 2;
+      // this.controls.enabled = false
+      // console.log(this.controls)
       //
       // LINES ****//
       //
@@ -88,7 +91,10 @@ export default {
       // materials
       var lineMaterial = new THREE.LineBasicMaterial({
         color: 0x000000,
-        linewidth: 2
+        linewidth: 2,
+        transparent: true,
+        opacity: this.hideObjects,
+        needsUpdate: true
       });
 
       //geometry
@@ -143,7 +149,7 @@ export default {
       //
 
       var pointsMaterial = new THREE.PointsMaterial({
-        map: new THREE.TextureLoader().load("../static/circle.png"),color: 0x000000,size: 1,transparent: true,opacity: 0.85,sizeAttenuation: true});
+        map: new THREE.TextureLoader().load("../static/circle.png"),color: 0x000000,size: 1,transparent: true,opacity: this.hideObjects,sizeAttenuation: true,needsUpdate:true, name: "pointsmaterial"});
 
       var point1Geometry = new THREE.BufferGeometry();
       point1Geometry.addAttribute(
@@ -198,84 +204,91 @@ export default {
       //
       // TEXT **** //
       //
-      ///
+      //
       //
       //
       //
 
       var textLoader = new THREE.FontLoader();
 
-      var aboutme = textLoader.load("../../static/handfontfat.json", font => {
+      // about me text
+
+      var aboutme = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide});
-        var shapes = font.generateShapes("about me.", 2.5);
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true});
+        var shapes = font.generateShapes("about me.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
         this.aboutme = new THREE.Mesh(textShape, material);
-        this.aboutme.position.set(45, 40, 3);
+        this.aboutme.position.set(33, 41, 5);
         this.aboutme.name = "aboutme";
         //
-        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
+        var planeGeometry = new THREE.PlaneGeometry(35, 5, 32);
         var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.set(35, 41, 2.9);
+        plane.position.set(45, 42, 4);
         plane.name = "aboutme";
 
         this.clickableGroup.add(this.aboutme, plane);
       });
 
-      var portfolio = textLoader.load("../../static/handfontfat.json", font => {
+      // PORTFOLIO text.
+
+      var portfolio = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide});
-        var shapes = font.generateShapes("portfolio.", 2.5);
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true});
+        var shapes = font.generateShapes("portfolio.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
         this.portfolio = new THREE.Mesh(textShape, material);
-        this.portfolio.position.set(-13.5,40,20)
+        this.portfolio.position.set(-23.5,40,-20)
         this.portfolio.name = "portfolio";
         //
-        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
-        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 1});
+        var planeGeometry = new THREE.PlaneGeometry(34, 5, 32);
+        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.set(-12, 41, -20.1);
+        plane.position.set(-14, 41, -20.1);
         plane.name = "portfolio";
         this.clickableGroup.add(this.portfolio, plane);
       });
 
-      var contact = textLoader.load("../../static/handfontfat.json", font => {
+      // CONTACT text
+
+      var contact = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1,side: THREE.DoubleSide})
-        var shapes = font.generateShapes("contact.", 2.5);
+        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true})
+        var shapes = font.generateShapes("contact.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
         var text = new THREE.Mesh(textShape, material);
-        text.position.set(62,-5,20)
+        text.position.set(53,-3,-20)
         text.name = "contact";
 
         var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
         var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.set(60, -5, -20.1);
+        plane.position.set(62, -2, -20.1);
         plane.name = "contact";
         this.clickableGroup.add(text, plane);
       });
 
       //
-      //// BACK ARROW
+      ////// BACK ARROW
       //
 
-      var backArrowMaterial = new THREE.LineBasicMaterial({color: 0x000000,linewidth: 5,transparent: true,opacity: 0});
+      var backArrowMaterial = new THREE.LineBasicMaterial({color: 0x000000,linewidth: 5,transparent: true,opacity: 1});
       var backArrowGeometry = new THREE.Geometry();
-      backArrowGeometry.vertices.push(new THREE.Vector3(0, 2.5, 0));
-      backArrowGeometry.vertices.push(new THREE.Vector3(-2.5, 0, 0));
-      backArrowGeometry.vertices.push(new THREE.Vector3(0, -2.5, 0));
+      backArrowGeometry.vertices.push(new THREE.Vector3(0, .5, 0));
+      backArrowGeometry.vertices.push(new THREE.Vector3(-.5, 0, 0));
+      backArrowGeometry.vertices.push(new THREE.Vector3(0, -.5, 0));
       this.backArrow = new THREE.Line(backArrowGeometry, backArrowMaterial);
-      this.backArrow.position.set(-78, 60, -100);
+      this.backArrow.position.set(-19.5, 15, -25);
+      this.backArrow.name = "backarrow"
       // plane
-      var planeGeometry = new THREE.PlaneGeometry(5, 5, 32);
+      var planeGeometry = new THREE.PlaneGeometry(1.5, 1.5, 5);
       var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffff00,transparent: true,opacity: 0});
       var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-      plane.position.set(-79, 60, -100.1);
+      plane.position.set(-19.7, 15, -25.1);
       plane.name = "backarrow";
 
       this.camera.add(this.backArrow, plane);
@@ -290,15 +303,19 @@ export default {
       objectLoader.load("../../static/depressionModel.json", model => {
         model.scale.set(0.01, 0.01, 0.01);
         model.position.set(-27, 18, -50);
-        model.name = "depression";
+        model.children[0].name = "model";
+        model.children[0].material.transparent = true;
+        model.children[0].material.opacity = 0;
         this.modelGroup.add(model);
       });
 
       objectLoader.load("../../static/wanderModel.json", model => {
-        model.scale.set(0.15, 0.15, 0.15);
+        model.scale.set(4, 4, 4);
         model.rotation.x = -Math.PI / 2;
-        model.position.set(-10, 18, -46);
-        model.name = "wander";
+        model.position.set(-10, 18, -4000);
+        model.children[0].name = "model";
+        model.children[0].material.transparent = true;
+        model.children[0].material.opacity = 0;
         this.modelGroup.add(model);
       });
 
@@ -306,7 +323,7 @@ export default {
       //  ////  L I G H T S
       //
 
-      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5, 1000);
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5, 500);
       directionalLight.position.set(-20, 50, 0);
       directionalLight.target.position.set(-27, 18, -50);
       directionalLight.target.updateMatrixWorld();
@@ -324,6 +341,7 @@ export default {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.controls.handleResize();
     },
 
     ///
@@ -336,38 +354,41 @@ export default {
 
     onDocumentMouseDown: function(event) {
       event.preventDefault();
-      this.setMouse()
+      this.mouse.x = event.clientX / this.renderer.domElement.clientWidth * 2 - 1;
+      this.mouse.y = -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
+      this.raycaster.setFromCamera(this.mouse, this.camera);
       var clickable = [
         ...this.clickableGroup.children,
-        ...this.camera.children
+        ...this.camera.children,
+        ...this.modelGroup.children
       ];
       var intersects = this.raycaster.intersectObjects(clickable, true);
       if (intersects.length > 0) {
+          console.log(intersects[0].object.name)
         switch (intersects[0].object.name) {
           case "point1":
             break;
-          case "point2" || "aboutme":
+          case "aboutme" || "point2":
             this.showBackArrow();
             this.fadeInText("aboutmeinfo");
             new TWEEN.Tween(this.camera.position)
-              .to({ x: 45, y: 28, z: 35 }, 1500).easing(TWEEN.Easing.Quadratic.Out).start();
+              .to({ x: 45, y: 28, z: 35 }, 800).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
             break;
-
-          case "point4" || "contact":
+          case "contact":
             this.showBackArrow();
             this.fadeOutText("aboutmeinfo")
             new TWEEN.Tween(this.camera.position)
-              .to({ x: 65, y: -20, z: 23 }, 1500).easing(TWEEN.Easing.Quadratic.Out).start();
+              .to({ x: 65, y: -20, z: 23 }, 800).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
             break;
 
-          case "point6" || "portfolio":
+          case "portfolio":
             this.showBackArrow();
             this.fadeOutText("aboutmeinfo")
-            this.showModels();
+            window.setTimeout(this.showModels,800)
             new TWEEN.Tween(this.camera.position)
-              .to({x: -10,y: 28,z: 20},1500).easing(TWEEN.Easing.Quadratic.Out).start();
+              .to({x: -10,y: 28,z: 20},800).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
             break;
 
@@ -378,13 +399,15 @@ export default {
               .to({x: 15,y: 0,z: 100},1000).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
             break;
+
+          case "model":
+            new TWEEN.Tween(this.camera.position)
+              .to({x: -10,y: 20,z: -3500},1000).easing(TWEEN.Easing.Quadratic.Out).start();
+            this.camera.updateProjectionMatrix();
+            // this.controls.enabled = true;
+            this.hideObjects = new TWEEN.Tween(this).to({hideObjects:0},1500).start().onComplete(()=> console.log(this.hideObjects))
         }
       }
-    },
-    setMouse: function(){
-      this.mouse.x = event.clientX / this.renderer.domElement.clientWidth * 2 - 1;
-      this.mouse.y = -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
-      this.mouse.z = 1;
     },
     hideBackArrow: function() {
       this.backArrow.material.transparent = true;
@@ -404,18 +427,28 @@ export default {
     fadeOutText: function(target){
       document.querySelector(".aboutmeinfo").setAttribute("class", target);
     },
-    showModels: function() {},
+    showModels: function() {
+      this.modelGroup.children.map(model =>
+      new TWEEN.Tween(model.children[0].material).to({opacity:1},1500).start()
+      )
+    },
+    hideEverything(){
+      var opacity = 1
+      return opacity
+    },
     animate: function() {
       requestAnimationFrame(this.animate);
       this.render();
     },
     render: function() {
+      // this.controls.update();
+      // this.controls.update( this.clock.getDelta() );
       TWEEN.update();
-      this.raycaster.setFromCamera(this.mouse, this.camera);
       this.renderer.render(this.scene, this.camera);
     }
   },
   mounted() {
+    // cloud.thoughtCloud()
     this.threeInit();
     this.animate();
   }
@@ -425,8 +458,8 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 @font-face {
-  font-family: "handfont";
-  src: url("../../static/handfont.ttf");
+  font-family: "daniel_font";
+  src: url("../../static/danielwolberg_font.ttf");
 }
 @keyframes customFadeIn {
   from {
@@ -438,10 +471,10 @@ export default {
 }
 .aboutmeinfo {
   opacity: 0;
-  font-family: "handfont";
+  font-family: "daniel_font";
   position: absolute;
   line-height: 1.8rem;
-  font-size: 1.3rem;
+  font-size: 4rem;
   z-index: 2;
   margin-left: 40%;
   margin-top: 30vh;
@@ -454,7 +487,7 @@ export default {
   animation-fill-mode: forwards;
   -webkit-animation-duration: 2.5s;
   animation-duration: 2.5s;
-  -webkit-animation-delay: 1.4s;
-  animation-delay: 1.4s;
+  -webkit-animation-delay: .8s;
+  animation-delay: .8s;
 }
 </style>
