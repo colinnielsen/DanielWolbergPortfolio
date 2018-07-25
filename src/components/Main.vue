@@ -19,9 +19,8 @@
 <script>
 //imports and requires -- it's a mess
 var THREE = require("three");
-// const cloud = require("./cloud.js")(THREE)
+import Stats from "./stats.min.js"
 const OrbitControls = require("three-orbit-controls")(THREE);
-// require('three-first-person-controls')(THREE);
 import TWEEN from "tween";
 
 export default {
@@ -35,16 +34,26 @@ export default {
       raycaster: null,
       mouse: null,
       clickableGroup: null,
+      stats: null,
       lineGroup: null,
       backArrow: null,
       aboutme: null,
       portfolio: null,
       modelGroup: null,
       hideObjects: 1,
-      clock: null,
       howToPrompt: "howtouse",
       instructionsShown: false,
-      baseModelXCoord: -27
+      baseModelXCoord: -27,
+      hideTree: true,
+      cloudGroup: null,
+      particleCount: null,
+      particlesData: [],
+      particlePositions: null,
+      rHalf: 400,
+      positions: null,
+      colors: null,
+      linesMesh: null,
+      pointCloud: null
     };
   },
 
@@ -61,7 +70,9 @@ export default {
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.controls = new OrbitControls(this.camera);
-      this.clock = new THREE.Clock(true);
+      console.log(Stats)
+      this.stats = new Stats()
+			document.body.appendChild( this.stats.dom );
       //
       //// adding container
       //
@@ -94,7 +105,7 @@ export default {
       	// this.controls.movementSpeed = 1000;
 				// this.controls.lookSpeed = 0.125;
 				this.controls.lookVertical = true;
-      this.controls.lookSpeed = 0.1;
+      this.controls.lookSpeed = 0.05;
       this.controls.movementSpeed = 40;
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.25;
@@ -112,8 +123,9 @@ export default {
       var lineMaterial = new THREE.LineBasicMaterial({
         color: 0x000000,
         linewidth: 2,
+        visible: this.hideTree,
         transparent: true,
-        opacity: this.hideObjects,
+        opacity: .85,
         needsUpdate: true
       });
 
@@ -169,7 +181,7 @@ export default {
       //
 
       var pointsMaterial = new THREE.PointsMaterial({
-        map: new THREE.TextureLoader().load("../static/circle.png"),color: 0x000000,size: 1,transparent: true,opacity: this.hideObjects,sizeAttenuation: true,needsUpdate:true, name: "pointsmaterial"});
+        map: new THREE.TextureLoader().load("../static/circle.png"),color: 0x000000,size: 1,transparent: true,opacity: .85,sizeAttenuation: true,needsUpdate:true, name: "pointsmaterial"});
 
       var point1Geometry = new THREE.BufferGeometry();
       point1Geometry.addAttribute(
@@ -233,9 +245,11 @@ export default {
 
       // about me text
 
+      var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
+      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
+    
       var aboutme = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true});
         var shapes = font.generateShapes("about me.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
@@ -244,7 +258,6 @@ export default {
         this.aboutme.name = "aboutme";
         //
         var planeGeometry = new THREE.PlaneGeometry(35, 5, 32);
-        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.position.set(45, 42, 4);
         plane.name = "aboutme";
@@ -256,7 +269,6 @@ export default {
 
       var portfolio = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true});
         var shapes = font.generateShapes("portfolio.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
@@ -265,7 +277,6 @@ export default {
         this.portfolio.name = "portfolio";
         //
         var planeGeometry = new THREE.PlaneGeometry(34, 5, 32);
-        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.position.set(-14, 41, -20.1);
         plane.name = "portfolio";
@@ -276,7 +287,6 @@ export default {
 
       var contact = textLoader.load("../../static/danielwolberg_font.json", font => {
         var textShape = new THREE.BufferGeometry();
-        var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: this.hideObjects,side: THREE.DoubleSide,needsUpdate:true})
         var shapes = font.generateShapes("contact.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
         textShape.fromGeometry(geometry);
@@ -285,7 +295,6 @@ export default {
         text.name = "contact";
 
         var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
-        var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.position.set(62, -2, -20.1);
         plane.name = "contact";
@@ -341,43 +350,14 @@ export default {
           model.children[0].material.transparent = true;
           model.children[0].material.opacity = 0;
           var geometry = model.children[0].geometry;
-          // geometry.computeBoundingBox();
-          // let boundingBox = geometry.boundingBox.clone();
-          // var center = new THREE.Vector3()
-          // boundingBox.getCenter(center)
-          // console.log(center)
-          // model.centerOfModel = center
+          geometry.computeBoundingBox();
+          var boundingBox = new THREE.Box3().setFromObject(model);
+          var center = boundingBox.getCenter(center);
+          model.centerOfModel = center
           this.modelGroup.add(model);
           this.baseModelXCoord += 10
         })
       })
-
-      // objectLoader.load("../../static/depressionModel.json", model => {
-      //   model.scale.set(0.01, 0.01, 0.01);
-      //   model.rotation.y = Math.PI
-      //   model.position.set(-27, 18, -50);
-      //   model.children[0].name = "model0";
-      //   model.children[0].material.transparent = true;
-      //   model.children[0].material.opacity = 0;
-      //   var bbox = new THREE.Box3().setFromObject(model);
-      //   var helper = new THREE.BoundingBoxHelper(model, 0xff0000);
-      //   helper.update();
-      //   model.traverse((o)=>{if(o.type==='Mesh'&&o.geometry)o.geometry.computeBoundingBox()})
-      //   this.modelGroup.add(model,bbox);
-      // });
-
-      // objectLoader.load("../../static/wanderModel.json", model => {
-      //   model.rotation.x = -Math.PI / 2;
-      //   model.position.set(-10, 18, -50);
-      //   model.children[0].name = "model1";
-      //   model.children[0].material.transparent = true;
-      //   model.children[0].material.opacity = 0;
-      //   var bbox = new THREE.Box3().setFromObject(model);
-      //   var helper = new THREE.BoundingBoxHelper(model, 0xff0000);
-      //   helper.update();
-      //   model.traverse((o)=>{if(o.type==='Mesh'&&o.geometry)o.geometry.computeBoundingBox()})
-      //   this.modelGroup.add(model,bbox);
-      // });
 
       //
       //  ////  L I G H T S
@@ -412,7 +392,6 @@ export default {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      // this.controls.handleResize();
     },
 
     ///
@@ -438,7 +417,7 @@ export default {
         switch (intersects[0].object.name) {
           case "point1":
             break;
-          case "aboutme" || "point2":
+          case "aboutme":
             this.showBackArrow();
             this.fadeInText("aboutmeinfo");
             new TWEEN.Tween(this.camera.position)
@@ -478,39 +457,157 @@ export default {
 
         switch (intersects[0].object.name.slice(0,-1)){
           case "model":
+            var currentIndex = parseInt(intersects[0].object.name.slice(-1))
+            var thisModel = this.modelGroup.children[currentIndex]
+            this.controls.target = thisModel.centerOfModel
+            this.controls.update()
             if(!this.instructionsShown){
               this.howToPrompt = "howtouse quickFadeIn"
             }
-            var currentIndex = parseInt(intersects[0].object.name.slice(-1))
-            console.log(intersects[0].object.geometry)
-            var modelPosition = this.modelGroup.children[currentIndex].position
-            this.controls.target = modelPosition
             new TWEEN.Tween(this.camera.position).to({x: -10,y: 20,z: -10},1000).easing(TWEEN.Easing.Quadratic.Out).start()
+            this.controls.update()
             var disappearModels = this.modelGroup.children.reduce((acc,model,i)=>{
               if(i !== currentIndex){
                 acc.push(model)
-              }else {
-                // console.log(model)
               }
               return acc
             },[])
             this.hideModels(disappearModels)
             this.camera.updateProjectionMatrix();
+            this.hideTreeFunct()
           break;
         }
       }
+    },
+    cloud: function(){
+    var particles
+    var particlePositions;
+    var maxParticleCount = 1000;
+    var particleCount = 300;
+    var r = 800;
+    var effectController = {
+        showDots: true,
+        showLines: true,
+        minDistance: 150,
+        limitConnections: false,
+        maxConnections: 20,
+        particleCount: 300
+    }
+
+
+    this.cloudGroup = new THREE.Group();
+    this.scene.add(this.cloudGroup);
+    var segments = maxParticleCount * maxParticleCount;
+    this.positions = new Float32Array(segments * 3);
+    this.colors = new Float32Array(segments * 3);
+    var pMaterial = new THREE.PointsMaterial({
+        color: 0x000000,
+        size: 3,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        sizeAttenuation: false
+    });
+    particles = new THREE.BufferGeometry();
+    this.particlePositions = new Float32Array(maxParticleCount * 3);
+    for (var i = 0; i < maxParticleCount; i++) {
+        var x = Math.random() * r - r / 2;
+        var y = Math.random() * r - r / 2;
+        var z = Math.random() * r - r / 2;
+        this.particlePositions[i * 3] = x;
+        this.particlePositions[i * 3 + 1] = y;
+        this.particlePositions[i * 3 + 2] = z;
+        // add it to the geometry
+        this.particlesData.push({
+            velocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2),
+            numConnections: 0
+        });
+    }
+    particles.setDrawRange(0, particleCount);
+    particles.addAttribute('position', new THREE.BufferAttribute(this.particlePositions, 3).setDynamic(true));
+    // create the particle system
+    this.pointCloud = new THREE.Points(particles, pMaterial);
+    this.cloudGroup.add(this.pointCloud);
+    var geometry = new THREE.BufferGeometry();
+    geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3).setDynamic(true));
+    geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3).setDynamic(true));
+    geometry.computeBoundingSphere();
+    geometry.setDrawRange(0, 0);
+    var material = new THREE.LineBasicMaterial({
+        vertexColors: THREE.VertexColors,
+        blending: THREE.AdditiveBlending,
+        transparent: true
+    });
+    this.linesMesh = new THREE.LineSegments(geometry, material);
+    this.cloudGroup.add(this.linesMesh);
+
+    //
+
+    this.renderer.gammaInput = true;
+    this.renderer.gammaOutput = true;
+    //
+    var vertexpos = 0;
+    var colorpos = 0;
+    var numConnected = 0;
+    for (var i = 0; i < particleCount; i++)
+        this.particlesData[i].numConnections = 0;
+    for (var i = 0; i < particleCount; i++) {
+        // get the particle
+        var particleData = this.particlesData[i];
+        this.particlePositions[i * 3] += particleData.velocity.x;
+        this.particlePositions[i * 3 + 1] += particleData.velocity.y;
+        this.particlePositions[i * 3 + 2] += particleData.velocity.z;
+        if (this.particlePositions[i * 3 + 1] < -this.rHalf || this.particlePositions[i * 3 + 1] > this.rHalf)
+            particleData.velocity.y = -particleData.velocity.y;
+        if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf)
+            particleData.velocity.x = -particleData.velocity.x;
+        if (this.particlePositions[i * 3 + 2] < -this.rHalf || this.particlePositions[i * 3 + 2] > this.rHalf)
+            particleData.velocity.z = -particleData.velocity.z;
+        if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
+            continue;
+        // Check collision
+        for (var j = i + 1; j < particleCount; j++) {
+            var particleDataB = this.particlesData[j];
+            if (effectController.limitConnections && particleDataB.numConnections >= effectController.maxConnections)
+                continue;
+            var dx = this.particlePositions[i * 3] - this.particlePositions[j * 3];
+            var dy = this.particlePositions[i * 3 + 1] - this.particlePositions[j * 3 + 1];
+            var dz = this.particlePositions[i * 3 + 2] - this.particlePositions[j * 3 + 2];
+            var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < effectController.minDistance) {
+                particleData.numConnections++;
+                particleDataB.numConnections++;
+                var alpha = 1.0 - dist / effectController.minDistance;
+                this.positions[vertexpos++] = this.particlePositions[i * 3];
+                this.positions[vertexpos++] = this.particlePositions[i * 3 + 1];
+                this.positions[vertexpos++] = this.particlePositions[i * 3 + 2];
+                this.positions[vertexpos++] = this.particlePositions[j * 3];
+                this.positions[vertexpos++] = this.particlePositions[j * 3 + 1];
+                this.positions[vertexpos++] = this.particlePositions[j * 3 + 2];
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                numConnected++;
+            }
+        }
+    }
+    requestAnimationFrame( this.animate );
     },
     onDocumentKeyDown: function(event){
         switch(event.keyCode){
           case 27:
           new TWEEN.Tween(this.camera.position)
-            .to({x: -10,y: 28,z: 20},1000).easing(TWEEN.Easing.Quadratic.Out).start();
-          new TWEEN.Tween(this.camera.rotation)
-            .to({x: 0,y: 0,z: 0},1000).easing(TWEEN.Easing.Quadratic.Out).start();
+            .to({x: -10,y: 28,z: 20},1000).easing(TWEEN.Easing.Quadratic.Out).start()
+              new TWEEN.Tween(this.camera.rotation).to({x: 0,y: 0,z: 0},1000).start()
           this.showModels()
           this.camera.updateProjectionMatrix();
           break;
       }
+    },
+    hideTreeFunct: function(){
+      this.hideTree = false
     },
     hideBackArrow: function() {
       this.backArrow.material.transparent = true;
@@ -548,7 +645,6 @@ export default {
       )
     },
     hideModels: function(arr){
-      // console.log(arr)
       arr.map(model =>
       new TWEEN.Tween(model.children[0].material).to({opacity:0},1000).start()
       )
@@ -558,22 +654,85 @@ export default {
       return opacity
     },
     animate: function() {
+      var effectController = {
+        showDots: true,
+        showLines: true,
+        minDistance: 150,
+        limitConnections: true,
+        maxConnections: 20,
+        particleCount: 200
+    }
+        var showDots = true
+        var showLines = true
+        var minDistance = 150
+        var limitConnections = true
+        var maxConnections = 20
+        var particleCount = 200
+    
+        var vertexpos = 0;
+    var colorpos = 0;
+    var numConnected = 0;
+    for (var i = 0; i < particleCount; i++)
+        this.particlesData[i].numConnections = 0;
+    for (var i = 0; i < particleCount; i++) {
+        // get the particle
+        var particleData = this.particlesData[i];
+        this.particlePositions[i * 3] += particleData.velocity.x;
+        this.particlePositions[i * 3 + 1] += particleData.velocity.y;
+        this.particlePositions[i * 3 + 2] += particleData.velocity.z;
+        if (this.particlePositions[i * 3 + 1] < -this.rHalf || this.particlePositions[i * 3 + 1] > this.rHalf)
+            particleData.velocity.y = -particleData.velocity.y;
+        if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf)
+            particleData.velocity.x = -particleData.velocity.x;
+        if (this.particlePositions[i * 3 + 2] < -this.rHalf || this.particlePositions[i * 3 + 2] > this.rHalf)
+            particleData.velocity.z = -particleData.velocity.z;
+        if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
+            continue;
+        // Check collision
+        for (var j = i + 1; j < particleCount; j++) {
+            var particleDataB = this.particlesData[j];
+            if (effectController.limitConnections && particleDataB.numConnections >= effectController.maxConnections)
+                continue;
+            var dx = this.particlePositions[i * 3] - this.particlePositions[j * 3];
+            var dy = this.particlePositions[i * 3 + 1] - this.particlePositions[j * 3 + 1];
+            var dz = this.particlePositions[i * 3 + 2] - this.particlePositions[j * 3 + 2];
+            var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < effectController.minDistance) {
+                particleData.numConnections++;
+                particleDataB.numConnections++;
+                var alpha = 1.0 - dist / effectController.minDistance;
+                this.positions[vertexpos++] = this.particlePositions[i * 3];
+                this.positions[vertexpos++] = this.particlePositions[i * 3 + 1];
+                this.positions[vertexpos++] = this.particlePositions[i * 3 + 2];
+                this.positions[vertexpos++] = this.particlePositions[j * 3];
+                this.positions[vertexpos++] = this.particlePositions[j * 3 + 1];
+                this.positions[vertexpos++] = this.particlePositions[j * 3 + 2];
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                this.colors[colorpos++] = alpha;
+                numConnected++;
+            }
+        }
+    }
+    		this.linesMesh.geometry.setDrawRange( 0, numConnected * 2 );
+				this.linesMesh.geometry.attributes.position.needsUpdate = true;
+				this.linesMesh.geometry.attributes.color.needsUpdate = true;
+				this.pointCloud.geometry.attributes.position.needsUpdate = true;
+      this.stats.update()
       requestAnimationFrame(this.animate);
       this.render();
     },
     render: function() {
-      // this.controls.update();
-      // this.controls.update( this.clock.getDelta() );
-      // console.log(this.camera.rotation) 
-      // this.camera.updateProjectionMatrix()
       TWEEN.update();
       this.renderer.render(this.scene, this.camera);
     }
   },
   mounted() {
-    // this.hideBackArrow()
-    // cloud.thoughtCloud()
     this.threeInit();
+    this.cloud()
     this.animate();
   }
 };
