@@ -10,7 +10,7 @@
     <div v-bind:class="this.howToPrompt">
       <h1>controls.</h1>
       <button v-on:click="setCamera"> ok </button>
-      <p>W, A, S, D = Move, MOUSE = Look around, ESCAPE = exit viewer</p>
+      <p>scroll = zoom, mouse + click = Look around, esc = exit viewer</p>
     </div>
 </div>
 
@@ -19,7 +19,7 @@
 <script>
 //imports and requires -- it's a mess
 var THREE = require("three");
-// import cloud from "./cloud.js"
+// const cloud = require("./cloud.js")(THREE)
 const OrbitControls = require("three-orbit-controls")(THREE);
 // require('three-first-person-controls')(THREE);
 import TWEEN from "tween";
@@ -43,7 +43,8 @@ export default {
       hideObjects: 1,
       clock: null,
       howToPrompt: "howtouse",
-      instructionsShown: false
+      instructionsShown: false,
+      baseModelXCoord: -27
     };
   },
 
@@ -65,7 +66,11 @@ export default {
       //// adding container
       //
 
-
+      var manager = new THREE.LoadingManager();
+      manager.onProgress = function ( item, loaded, total ) {
+        console.log((loaded / total * 100) + '%');
+      }
+      
       var container = document.createElement("div");
       document.body.appendChild(container);
 
@@ -99,7 +104,6 @@ export default {
       // this.controls.maxPolarAngle = Math.PI / 2;
       this.controls.enabled = false
       this.controls.update()
-      console.log(this.controls.target)
       //
       // LINES ****//
       //
@@ -312,38 +316,74 @@ export default {
 
       this.camera.add(this.backArrow, plane);
 
-      //   //
-      // //// M O D E L  L O A D E R
-      //   //
-
-      this.modelGroup = new THREE.Group();
+      //    //
+      // // // M O D E L  L O A D E R
+      //    //
 
       var objectLoader = new THREE.ObjectLoader();
-      objectLoader.load("../../static/depressionModel.json", model => {
-        model.scale.set(0.01, 0.01, 0.01);
-        model.rotation.y = Math.PI
-        model.position.set(-27, 18, -50);
-        model.children[0].name = "model0";
-        model.children[0].material.transparent = true;
-        model.children[0].material.opacity = 0;
-        this.modelGroup.add(model);
-      });
 
-      objectLoader.load("../../static/wanderModel.json", model => {
-        model.scale.set(.15, .15, .15); 
-        model.rotation.x = -Math.PI / 2;
-        model.position.set(-10, 18, -50);
-        model.children[0].name = "model1";
-        model.children[0].material.transparent = true;
-        model.children[0].material.opacity = 0;
-        this.modelGroup.add(model);
-      });
+      this.modelGroup = new THREE.Group();
+      var models = ["../../static/depressionModel.json","../../static/wanderModel.json"]
+      models.map((unloadedModel,index) => {
+        objectLoader.load(unloadedModel,(model) => {
+          switch(index){
+          case(0):
+              model.scale.set(.01,.01,.01)
+              model.rotation.y = Math.PI
+            break;
+          case(1):
+              model.scale.set(.15, .15, .15)
+              model.rotation.x = -Math.PI / 2;
+            break;
+          }
+          model.position.set(this.baseModelXCoord, 18, -50);
+          model.children[0].name = "model"+index;
+          model.children[0].material.transparent = true;
+          model.children[0].material.opacity = 0;
+          var geometry = model.children[0].geometry;
+          // geometry.computeBoundingBox();
+          // let boundingBox = geometry.boundingBox.clone();
+          // var center = new THREE.Vector3()
+          // boundingBox.getCenter(center)
+          // console.log(center)
+          // model.centerOfModel = center
+          this.modelGroup.add(model);
+          this.baseModelXCoord += 10
+        })
+      })
+
+      // objectLoader.load("../../static/depressionModel.json", model => {
+      //   model.scale.set(0.01, 0.01, 0.01);
+      //   model.rotation.y = Math.PI
+      //   model.position.set(-27, 18, -50);
+      //   model.children[0].name = "model0";
+      //   model.children[0].material.transparent = true;
+      //   model.children[0].material.opacity = 0;
+      //   var bbox = new THREE.Box3().setFromObject(model);
+      //   var helper = new THREE.BoundingBoxHelper(model, 0xff0000);
+      //   helper.update();
+      //   model.traverse((o)=>{if(o.type==='Mesh'&&o.geometry)o.geometry.computeBoundingBox()})
+      //   this.modelGroup.add(model,bbox);
+      // });
+
+      // objectLoader.load("../../static/wanderModel.json", model => {
+      //   model.rotation.x = -Math.PI / 2;
+      //   model.position.set(-10, 18, -50);
+      //   model.children[0].name = "model1";
+      //   model.children[0].material.transparent = true;
+      //   model.children[0].material.opacity = 0;
+      //   var bbox = new THREE.Box3().setFromObject(model);
+      //   var helper = new THREE.BoundingBoxHelper(model, 0xff0000);
+      //   helper.update();
+      //   model.traverse((o)=>{if(o.type==='Mesh'&&o.geometry)o.geometry.computeBoundingBox()})
+      //   this.modelGroup.add(model,bbox);
+      // });
 
       //
       //  ////  L I G H T S
       //
 
-      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.5, 500);
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.2, 500);
       directionalLight.position.set(-20, 50, 0);
       directionalLight.target.position.set(-27, 18, -50);
       directionalLight.target.updateMatrixWorld();
@@ -355,14 +395,19 @@ export default {
       //
       // SCENE ADD
       //
-      this.controls.target = new THREE.Vector3(0,0,-100)
+      this.controls.target = new THREE.Vector3(20,10,-60)
       this.controls.update()
       this.scene.add(this.camera, this.clickableGroup,this.lineGroup,this.modelGroup,directionalLight,hemisphereLight,target);
       //event listeners
       window.addEventListener("resize", this.onWindowResize);
       document.addEventListener("mousedown", this.onDocumentMouseDown, false);
       document.addEventListener("keydown", this.onDocumentKeyDown, false);
-    },
+
+      //
+      // LOADING MANAGER 
+      //
+    
+},
     onWindowResize: function() {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
@@ -390,7 +435,6 @@ export default {
       ];
       var intersects = this.raycaster.intersectObjects(clickable, true);
       if (intersects.length > 0) {
-          console.log(intersects[0].object.name)
         switch (intersects[0].object.name) {
           case "point1":
             break;
@@ -401,6 +445,7 @@ export default {
               .to({ x: 45, y: 28, z: 35 }, 800).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
             break;
+
           case "contact":
             this.showBackArrow();
             this.fadeOutText("aboutmeinfo")
@@ -426,24 +471,32 @@ export default {
               .to({x: 15,y: 0,z: 100},1000).easing(TWEEN.Easing.Quadratic.Out).start();
             new TWEEN.Tween(this.camera.rotation)
               .to({x: 0,y: 0,z: 0},1000).easing(TWEEN.Easing.Quadratic.Out).start();
+            this.hideModels(this.modelGroup.children)
             this.camera.updateProjectionMatrix();
             break;
+        }
 
-          case "model0":
+        switch (intersects[0].object.name.slice(0,-1)){
+          case "model":
             if(!this.instructionsShown){
-            this.howToPrompt = "howtouse quickFadeIn"
+              this.howToPrompt = "howtouse quickFadeIn"
             }
-            this.controls.target = this.modelGroup.children[0].position
+            var currentIndex = parseInt(intersects[0].object.name.slice(-1))
+            console.log(intersects[0].object.geometry)
+            var modelPosition = this.modelGroup.children[currentIndex].position
+            this.controls.target = modelPosition
             new TWEEN.Tween(this.camera.position).to({x: -10,y: 20,z: -10},1000).easing(TWEEN.Easing.Quadratic.Out).start()
-            // this.hideModels(intersects[0].object)
-            console.log(intersects[0].object.name.slice(-1))
+            var disappearModels = this.modelGroup.children.reduce((acc,model,i)=>{
+              if(i !== currentIndex){
+                acc.push(model)
+              }else {
+                // console.log(model)
+              }
+              return acc
+            },[])
+            this.hideModels(disappearModels)
             this.camera.updateProjectionMatrix();
-            // console.log(this.modelGroup)
           break;
-
-          case "model2":
-            
-
         }
       }
     },
@@ -454,6 +507,7 @@ export default {
             .to({x: -10,y: 28,z: 20},1000).easing(TWEEN.Easing.Quadratic.Out).start();
           new TWEEN.Tween(this.camera.rotation)
             .to({x: 0,y: 0,z: 0},1000).easing(TWEEN.Easing.Quadratic.Out).start();
+          this.showModels()
           this.camera.updateProjectionMatrix();
           break;
       }
@@ -493,9 +547,10 @@ export default {
       new TWEEN.Tween(model.children[0].material).to({opacity:1},1500).start()
       )
     },
-    hideModels: function(){
-      this.modelGroup.children.map(model =>
-      new TWEEN.Tween(model.children[0].material).to({opacity:1},1500).start()
+    hideModels: function(arr){
+      // console.log(arr)
+      arr.map(model =>
+      new TWEEN.Tween(model.children[0].material).to({opacity:0},1000).start()
       )
     },
     hideEverything(){
@@ -547,6 +602,19 @@ export default {
   }
 }
 
+#progress {
+  width: 200px;
+  height: 20px;
+  background: #000;
+  border: 2px solid #000;
+}
+#progressBar {
+  width: 200px;
+  height: 20px;
+  background: red;
+  border: none;
+}
+
 .aboutmeinfo {
   opacity: 0;
   font-family: "daniel_font";
@@ -571,7 +639,7 @@ button, input[type="submit"], input[type="reset"] {
 }
 
 .howtouse{
-  // background-color: lightgrey;
+  background-color: lightgrey;
   opacity: 0;
   font-family: "daniel_font";
   position: fixed;
