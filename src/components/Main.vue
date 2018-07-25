@@ -7,11 +7,44 @@
       feel free to poke around !
       </p>
     </div>
+    <div class="contactinfo">
+      <p> tel - (720) 537-4170 <p>
+      <p> email - dwwolberg@g </p>
+      <p> ig - @danielwolberg </p>
+    </div>
     <div v-bind:class="this.howToPrompt">
       <h1>controls.</h1>
       <button v-on:click="setCamera"> ok </button>
       <p>scroll = zoom, mouse + click = Look around, esc = exit viewer</p>
     </div>
+    <section class="section">
+  <div id="wrapper" class="wrapper">
+  <div id="container" class="container">
+    <div class="photo-grid clearfix">
+      <ul class="clearfix">
+        <li>
+          <img src="https://preview.ibb.co/gawfw8/img014.jpg" alt="500x500" width="500" height="500" />
+        </li>
+        <li>
+          <img src="https://preview.ibb.co/nvPN9T/img015.jpg" alt="500x500" width="500" height="500" />
+        </li>
+        <li>
+          <img src="https://preview.ibb.co/cEcyio/img016.jpg" alt="500x500" width="500" height="500" />
+        </li>
+        <li>
+          <img src="https://preview.ibb.co/dQbDG8/img017.jpg" alt="500x500" width="500" height="500" />
+        </li>
+        <li>
+          <img src="https://preview.ibb.co/en3Sb8/img018.jpg" alt="500x500" width="500" height="500" />
+        </li>
+        <li>
+          <img src="https://preview.ibb.co/kWSLw8/img019.jpg" alt="500x500" width="500" height="500" />
+        </li>
+      </ul>
+    </div><!-- /photo-grid -->
+  </div><!-- /container -->
+</div><!-- /wrapper -->
+</section>
 </div>
 
 </template>
@@ -27,6 +60,7 @@ export default {
   name: "Main",
   data() {
     return {
+      models: null,
       controls: null,
       camera: null,
       renderer: null,
@@ -42,6 +76,8 @@ export default {
       modelGroup: null,
       hideObjects: 1,
       howToPrompt: "howtouse",
+      atSketches: false,
+      atPortfolio: false,
       instructionsShown: false,
       baseModelXCoord: -27,
       hideTree: true,
@@ -66,11 +102,11 @@ export default {
       this.mouse = new THREE.Vector2();
       this.raycaster = new THREE.Raycaster();
       this.raycaster.params.Points.threshold = .5;
-      this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight ,1,10000);
+      this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight ,1,2000);
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.controls = new OrbitControls(this.camera);
-      console.log(Stats)
+      // console.log(Stats)
       this.stats = new Stats()
 			document.body.appendChild( this.stats.dom );
       //
@@ -104,7 +140,7 @@ export default {
       
       	// this.controls.movementSpeed = 1000;
 				// this.controls.lookSpeed = 0.125;
-				this.controls.lookVertical = true;
+			this.controls.lookVertical = true;
       this.controls.lookSpeed = 0.05;
       this.controls.movementSpeed = 40;
       this.controls.enableDamping = true;
@@ -245,10 +281,10 @@ export default {
 
       // about me text
 
-      var planeMaterial = new THREE.MeshBasicMaterial({color: 0xffffff,transparent: true,opacity: 0});
-      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
+      var planeMaterial = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: 1});
     
       var aboutme = textLoader.load("../../static/danielwolberg_font.json", font => {
+      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
         var textShape = new THREE.BufferGeometry();
         var shapes = font.generateShapes("about me.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -268,6 +304,7 @@ export default {
       // PORTFOLIO text.
 
       var portfolio = textLoader.load("../../static/danielwolberg_font.json", font => {
+      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
         var textShape = new THREE.BufferGeometry();
         var shapes = font.generateShapes("portfolio.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -286,6 +323,7 @@ export default {
       // CONTACT text
 
       var contact = textLoader.load("../../static/danielwolberg_font.json", font => {
+      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
         var textShape = new THREE.BufferGeometry();
         var shapes = font.generateShapes("contact.", 7.5);
         var geometry = new THREE.ShapeGeometry(shapes);
@@ -298,6 +336,23 @@ export default {
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.position.set(62, -2, -20.1);
         plane.name = "contact";
+        this.clickableGroup.add(text, plane);
+      });
+    // SKETCHES text
+      var sketches = textLoader.load("../../static/danielwolberg_font.json", font => {
+      var material = new THREE.MeshBasicMaterial({color: 0x000000,transparent: true,opacity: .85,visible: this.hideTree,side: THREE.DoubleSide,needsUpdate:true});
+        var textShape = new THREE.BufferGeometry();
+        var shapes = font.generateShapes("sketches.", 5);
+        var geometry = new THREE.ShapeGeometry(shapes);
+        textShape.fromGeometry(geometry);
+        var text = new THREE.Mesh(textShape, material);
+        text.position.set(-34, 12, 50)
+        text.name = "sketches";
+
+        var planeGeometry = new THREE.PlaneGeometry(32, 5, 32);
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.set(-34, 12, 49.9);
+        plane.name = "sketches";
         this.clickableGroup.add(text, plane);
       });
 
@@ -330,32 +385,35 @@ export default {
       //    //
 
       var objectLoader = new THREE.ObjectLoader();
-
       this.modelGroup = new THREE.Group();
-      var models = ["../../static/depressionModel.json","../../static/wanderModel.json"]
-      models.map((unloadedModel,index) => {
-        objectLoader.load(unloadedModel,(model) => {
-          switch(index){
-          case(0):
-              model.scale.set(.01,.01,.01)
-              model.rotation.y = Math.PI
-            break;
-          case(1):
-              model.scale.set(.15, .15, .15)
-              model.rotation.x = -Math.PI / 2;
-            break;
-          }
-          model.position.set(this.baseModelXCoord, 18, -50);
-          model.children[0].name = "model"+index;
-          model.children[0].material.transparent = true;
-          model.children[0].material.opacity = 0;
-          var geometry = model.children[0].geometry;
-          geometry.computeBoundingBox();
-          var boundingBox = new THREE.Box3().setFromObject(model);
-          var center = boundingBox.getCenter(center);
-          model.centerOfModel = center
-          this.modelGroup.add(model);
-          this.baseModelXCoord += 10
+      fetch('https://capstonebackend-1.herokuapp.com/models')
+      .then(response => response.json())
+      .then(data => this.models = data.model)
+      .then(() => {
+        this.models.map((unloadedModel,index) => {
+          objectLoader.load(unloadedModel.modelLink,(model) => {
+            switch(index){
+            case(0):
+                model.scale.set(.01,.01,.01)
+                model.rotation.y = Math.PI
+              break;
+            case(1):
+                model.scale.set(.15, .15, .15)
+                model.rotation.x = -Math.PI / 2;
+              break;
+            }
+            model.position.set(this.baseModelXCoord, 18, -50);
+            model.children[0].name = "model"+index;
+            model.children[0].material.transparent = true;
+            model.children[0].material.opacity = 0;
+            var geometry = model.children[0].geometry;
+            geometry.computeBoundingBox();
+            var boundingBox = new THREE.Box3().setFromObject(model);
+            var center = boundingBox.getCenter();
+            model.centerOfModel = center
+            this.modelGroup.add(model);
+            this.baseModelXCoord += 10
+          })
         })
       })
 
@@ -375,6 +433,7 @@ export default {
       //
       // SCENE ADD
       //
+
       this.controls.target = new THREE.Vector3(20,10,-60)
       this.controls.update()
       this.scene.add(this.camera, this.clickableGroup,this.lineGroup,this.modelGroup,directionalLight,hemisphereLight,target);
@@ -394,7 +453,7 @@ export default {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     },
 
-    ///
+    //
     //
     //    E V E N T   H A N D L E R S
     //      c l i c k  e v e n t s
@@ -427,6 +486,7 @@ export default {
 
           case "contact":
             this.showBackArrow();
+            this.fadeInText("contactinfo");
             this.fadeOutText("aboutmeinfo")
             new TWEEN.Tween(this.camera.position)
               .to({ x: 65, y: -20, z: 23 }, 800).easing(TWEEN.Easing.Quadratic.Out).start();
@@ -442,10 +502,38 @@ export default {
             this.camera.updateProjectionMatrix();
             break;
 
+          case "sketches":
+            this.showBackArrow();
+            this.fadeInText("section")
+            this.atSketches = true
+            new TWEEN.Tween(this.clickableGroup.children[8].material)
+              .to({opacity: 0},800).start();
+            new TWEEN.Tween(this.clickableGroup.children[4].material)
+              .to({opacity: 0},800).start();
+            new TWEEN.Tween(this.lineGroup.children[4].material)
+              .to({opacity: 0},800).start();
+            new TWEEN.Tween(this.camera.position)
+              .to({x: -35, y: 5, z: 70},800).easing(TWEEN.Easing.Quadratic.Out).start();
+            this.camera.updateProjectionMatrix();
+            break;
+
           case "backarrow":
+            if(this.atSketches || this.atPortfolio){
+              new TWEEN.Tween(this.clickableGroup.children[8].material)
+                .to({opacity: 1},800).start();
+              new TWEEN.Tween(this.clickableGroup.children[4].material)
+                .to({opacity: 1},800).start();
+              new TWEEN.Tween(this.lineGroup.children[4].material)
+                .to({opacity: 1},800).start();
+              new TWEEN.Tween(this.clickableGroup.children[6].material).to({opacity: 1},800).start()
+              new TWEEN.Tween(this.clickableGroup.children[10].material).to({opacity: 1},800).start()
+              new TWEEN.Tween(this.clickableGroup.children[12].material).to({opacity: 1},800).start()
+            }
             this.controls.enabled = false
             this.hideBackArrow();
             this.fadeOutText("aboutmeinfo")
+            this.fadeOutText("section")
+            this.fadeOutText("contactinfo")
             new TWEEN.Tween(this.camera.position)
               .to({x: 15,y: 0,z: 100},1000).easing(TWEEN.Easing.Quadratic.Out).start();
             new TWEEN.Tween(this.camera.rotation)
@@ -457,6 +545,14 @@ export default {
 
         switch (intersects[0].object.name.slice(0,-1)){
           case "model":
+            this.atPortfolio = true
+            
+            new TWEEN.Tween(this.clickableGroup.children[8].material).to({opacity: 0},800).start()
+            new TWEEN.Tween(this.clickableGroup.children[6].material).to({opacity: 0},800).start()
+            new TWEEN.Tween(this.clickableGroup.children[10].material).to({opacity: 0},800).start()
+            new TWEEN.Tween(this.clickableGroup.children[12].material).to({opacity: 0},800).start()
+            new TWEEN.Tween(this.clickableGroup.children[4].material).to({opacity: 0},800).start()
+            new TWEEN.Tween(this.lineGroup.children[4].material).to({opacity: 0},800).start();
             var currentIndex = parseInt(intersects[0].object.name.slice(-1))
             var thisModel = this.modelGroup.children[currentIndex]
             this.controls.target = thisModel.centerOfModel
@@ -478,122 +574,6 @@ export default {
           break;
         }
       }
-    },
-    cloud: function(){
-    var particles
-    var particlePositions;
-    var maxParticleCount = 1000;
-    var particleCount = 300;
-    var r = 800;
-    var effectController = {
-        showDots: true,
-        showLines: true,
-        minDistance: 150,
-        limitConnections: false,
-        maxConnections: 20,
-        particleCount: 300
-    }
-
-
-    this.cloudGroup = new THREE.Group();
-    this.scene.add(this.cloudGroup);
-    var segments = maxParticleCount * maxParticleCount;
-    this.positions = new Float32Array(segments * 3);
-    this.colors = new Float32Array(segments * 3);
-    var pMaterial = new THREE.PointsMaterial({
-        color: 0x000000,
-        size: 3,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        sizeAttenuation: false
-    });
-    particles = new THREE.BufferGeometry();
-    this.particlePositions = new Float32Array(maxParticleCount * 3);
-    for (var i = 0; i < maxParticleCount; i++) {
-        var x = Math.random() * r - r / 2;
-        var y = Math.random() * r - r / 2;
-        var z = Math.random() * r - r / 2;
-        this.particlePositions[i * 3] = x;
-        this.particlePositions[i * 3 + 1] = y;
-        this.particlePositions[i * 3 + 2] = z;
-        // add it to the geometry
-        this.particlesData.push({
-            velocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2),
-            numConnections: 0
-        });
-    }
-    particles.setDrawRange(0, particleCount);
-    particles.addAttribute('position', new THREE.BufferAttribute(this.particlePositions, 3).setDynamic(true));
-    // create the particle system
-    this.pointCloud = new THREE.Points(particles, pMaterial);
-    this.cloudGroup.add(this.pointCloud);
-    var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', new THREE.BufferAttribute(this.positions, 3).setDynamic(true));
-    geometry.addAttribute('color', new THREE.BufferAttribute(this.colors, 3).setDynamic(true));
-    geometry.computeBoundingSphere();
-    geometry.setDrawRange(0, 0);
-    var material = new THREE.LineBasicMaterial({
-        vertexColors: THREE.VertexColors,
-        blending: THREE.AdditiveBlending,
-        transparent: true
-    });
-    this.linesMesh = new THREE.LineSegments(geometry, material);
-    this.cloudGroup.add(this.linesMesh);
-
-    //
-
-    this.renderer.gammaInput = true;
-    this.renderer.gammaOutput = true;
-    //
-    var vertexpos = 0;
-    var colorpos = 0;
-    var numConnected = 0;
-    for (var i = 0; i < particleCount; i++)
-        this.particlesData[i].numConnections = 0;
-    for (var i = 0; i < particleCount; i++) {
-        // get the particle
-        var particleData = this.particlesData[i];
-        this.particlePositions[i * 3] += particleData.velocity.x;
-        this.particlePositions[i * 3 + 1] += particleData.velocity.y;
-        this.particlePositions[i * 3 + 2] += particleData.velocity.z;
-        if (this.particlePositions[i * 3 + 1] < -this.rHalf || this.particlePositions[i * 3 + 1] > this.rHalf)
-            particleData.velocity.y = -particleData.velocity.y;
-        if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf)
-            particleData.velocity.x = -particleData.velocity.x;
-        if (this.particlePositions[i * 3 + 2] < -this.rHalf || this.particlePositions[i * 3 + 2] > this.rHalf)
-            particleData.velocity.z = -particleData.velocity.z;
-        if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
-            continue;
-        // Check collision
-        for (var j = i + 1; j < particleCount; j++) {
-            var particleDataB = this.particlesData[j];
-            if (effectController.limitConnections && particleDataB.numConnections >= effectController.maxConnections)
-                continue;
-            var dx = this.particlePositions[i * 3] - this.particlePositions[j * 3];
-            var dy = this.particlePositions[i * 3 + 1] - this.particlePositions[j * 3 + 1];
-            var dz = this.particlePositions[i * 3 + 2] - this.particlePositions[j * 3 + 2];
-            var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (dist < effectController.minDistance) {
-                particleData.numConnections++;
-                particleDataB.numConnections++;
-                var alpha = 1.0 - dist / effectController.minDistance;
-                this.positions[vertexpos++] = this.particlePositions[i * 3];
-                this.positions[vertexpos++] = this.particlePositions[i * 3 + 1];
-                this.positions[vertexpos++] = this.particlePositions[i * 3 + 2];
-                this.positions[vertexpos++] = this.particlePositions[j * 3];
-                this.positions[vertexpos++] = this.particlePositions[j * 3 + 1];
-                this.positions[vertexpos++] = this.particlePositions[j * 3 + 2];
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                numConnected++;
-            }
-        }
-    }
-    requestAnimationFrame( this.animate );
     },
     onDocumentKeyDown: function(event){
         switch(event.keyCode){
@@ -622,12 +602,13 @@ export default {
       tweenon.start();
     },
     fadeInText: function(target) {
-      document.querySelector(".aboutmeinfo").setAttribute("class", `${target} customFadeIn`);
+      document.querySelector(`.${target}`).setAttribute("class", `${target} customFadeIn`);
     },
     fadeOutText: function(target){
-      document.querySelector(".aboutmeinfo").setAttribute("class", target);
+      document.querySelector(`.${target}`).setAttribute("class", `${target} `);
     },
     setCamera: function(){
+      console.log("hey")
       if(!this.instructionsShown){
         this.howToPrompt = "howtouse quickFadeOut"
         this.instructionsShown = true
@@ -637,7 +618,6 @@ export default {
         this.controls.enabled = true
         this.camera.updateProjectionMatrix();
       }
-
     },
     showModels: function() {
       this.modelGroup.children.map(model =>
@@ -653,74 +633,138 @@ export default {
       var opacity = 1
       return opacity
     },
+    cloud: function(){
+    //       this.cloudGroup = new THREE.Group();
+    // this.scene.add(this.cloudGroup);
+    // var segments = maxParticleCount * maxParticleCount;
+    // positions = new Float32Array(segments * 3);
+    // colors = new Float32Array(segments * 3);
+    // var pMaterial = new THREE.PointsMaterial({
+    //     color: 0x000000,
+    //     size: 3,
+    //     blending: THREE.AdditiveBlending,
+    //     transparent: true,
+    //     sizeAttenuation: false
+    // });
+    // particles = new THREE.BufferGeometry();
+    // particlePositions = new Float32Array(maxParticleCount * 3);
+    // for (var i = 0; i < maxParticleCount; i++) {
+    //     var x = Math.random() * r - r / 2;
+    //     var y = Math.random() * r - r / 2;
+    //     var z = Math.random() * r - r / 2;
+    //     particlePositions[i * 3] = x;
+    //     particlePositions[i * 3 + 1] = y;
+    //     particlePositions[i * 3 + 2] = z;
+    //     // add it to the geometry
+    //     particlesData.push({
+    //         velocity: new THREE.Vector3(-1 + Math.random() * 2, -1 + Math.random() * 2, -1 + Math.random() * 2),
+    //         numConnections: 0
+    //     });
+    // }
+    // particles.setDrawRange(0, particleCount);
+    // particles.addAttribute('position', new THREE.BufferAttribute(particlePositions, 3).setDynamic(true));
+    // // create the particle system
+    // pointCloud = new THREE.Points(particles, pMaterial);
+    // this.cloudGroup.add(pointCloud);
+    // var geometry = new THREE.BufferGeometry();
+    // geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3).setDynamic(true));
+    // geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3).setDynamic(true));
+    // geometry.computeBoundingSphere();
+    // geometry.setDrawRange(0, 0);
+    // var material = new THREE.LineBasicMaterial({
+    //     vertexColors: THREE.VertexColors,
+    //     blending: THREE.AdditiveBlending,
+    //     transparent: true
+    // });
+    // linesMesh = new THREE.LineSegments(geometry, material);
+    // this.cloudGroup.add(this.linesMesh);
+
+    // //
+
+    // this.renderer.gammaInput = true;
+    // this.renderer.gammaOutput = true;
+    },
     animate: function() {
-      var effectController = {
-        showDots: true,
-        showLines: true,
-        minDistance: 150,
-        limitConnections: true,
-        maxConnections: 20,
-        particleCount: 200
-    }
-        var showDots = true
-        var showLines = true
-        var minDistance = 150
-        var limitConnections = true
-        var maxConnections = 20
-        var particleCount = 200
+    //   var particlesData = [];
+    //   var positions, colors;
+    //   var particles;
+    //   var pointCloud;
+    //   var particlePositions;
+    //   var linesMesh;
+    //   var maxParticleCount = 1000;
+    //   var particleCount = 500;
+    //   var r = 800;
+    //   var rHalf = r / 2;
+    //   var effectController = {
+    //       showDots: true,
+    //       showLines: true,
+    //       minDistance: 150,
+    //       limitConnections: false,
+    //       maxConnections: 20,
+    //       particleCount: 500
+    //   }
+
+    //   var effectController = {
+    //     showDots: true,
+    //     showLines: true,
+    //     minDistance: 150,
+    //     limitConnections: true,
+    //     maxConnections: 20,
+    //     particleCount: 200
+    // }
     
-        var vertexpos = 0;
-    var colorpos = 0;
-    var numConnected = 0;
-    for (var i = 0; i < particleCount; i++)
-        this.particlesData[i].numConnections = 0;
-    for (var i = 0; i < particleCount; i++) {
-        // get the particle
-        var particleData = this.particlesData[i];
-        this.particlePositions[i * 3] += particleData.velocity.x;
-        this.particlePositions[i * 3 + 1] += particleData.velocity.y;
-        this.particlePositions[i * 3 + 2] += particleData.velocity.z;
-        if (this.particlePositions[i * 3 + 1] < -this.rHalf || this.particlePositions[i * 3 + 1] > this.rHalf)
-            particleData.velocity.y = -particleData.velocity.y;
-        if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf)
-            particleData.velocity.x = -particleData.velocity.x;
-        if (this.particlePositions[i * 3 + 2] < -this.rHalf || this.particlePositions[i * 3 + 2] > this.rHalf)
-            particleData.velocity.z = -particleData.velocity.z;
-        if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
-            continue;
-        // Check collision
-        for (var j = i + 1; j < particleCount; j++) {
-            var particleDataB = this.particlesData[j];
-            if (effectController.limitConnections && particleDataB.numConnections >= effectController.maxConnections)
-                continue;
-            var dx = this.particlePositions[i * 3] - this.particlePositions[j * 3];
-            var dy = this.particlePositions[i * 3 + 1] - this.particlePositions[j * 3 + 1];
-            var dz = this.particlePositions[i * 3 + 2] - this.particlePositions[j * 3 + 2];
-            var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (dist < effectController.minDistance) {
-                particleData.numConnections++;
-                particleDataB.numConnections++;
-                var alpha = 1.0 - dist / effectController.minDistance;
-                this.positions[vertexpos++] = this.particlePositions[i * 3];
-                this.positions[vertexpos++] = this.particlePositions[i * 3 + 1];
-                this.positions[vertexpos++] = this.particlePositions[i * 3 + 2];
-                this.positions[vertexpos++] = this.particlePositions[j * 3];
-                this.positions[vertexpos++] = this.particlePositions[j * 3 + 1];
-                this.positions[vertexpos++] = this.particlePositions[j * 3 + 2];
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                this.colors[colorpos++] = alpha;
-                numConnected++;
-            }
-        }
-    }
-    		this.linesMesh.geometry.setDrawRange( 0, numConnected * 2 );
-				this.linesMesh.geometry.attributes.position.needsUpdate = true;
-				this.linesMesh.geometry.attributes.color.needsUpdate = true;
-				this.pointCloud.geometry.attributes.position.needsUpdate = true;
+    //     var vertexpos = 0;
+    //     var colorpos = 0;
+    //     var numConnected = 0;
+    //     for (var i = 0; i < particleCount; i++)
+    //         particlesData[i].numConnections = 0;
+    //     for (var i = 0; i < particleCount; i++) {
+    //     // get the particle
+    //       var particleData = particlesData[i];
+    //       particlePositions[i * 3] += particleData.velocity.x;
+    //       particlePositions[i * 3 + 1] += particleData.velocity.y;
+    //       particlePositions[i * 3 + 2] += particleData.velocity.z;
+    //       if (particlePositions[i * 3 + 1] < -rHalf || particlePositions[i * 3 + 1] > rHalf)
+    //           particleData.velocity.y = -particleData.velocity.y;
+    //       if (particlePositions[i * 3] < -rHalf || particlePositions[i * 3] > rHalf)
+    //           particleData.velocity.x = -particleData.velocity.x;
+    //       if (particlePositions[i * 3 + 2] < -rHalf || particlePositions[i * 3 + 2] > rHalf)
+    //           particleData.velocity.z = -particleData.velocity.z;
+    //       if (effectController.limitConnections && particleData.numConnections >= effectController.maxConnections)
+    //           continue;
+    //     // Check collision
+    //     for (var j = i + 1; j < particleCount; j++) {
+    //         var particleDataB = particlesData[j];
+    //         if (effectController.limitConnections && particleDataB.numConnections >= effectController.maxConnections)
+    //             continue;
+    //         var dx = particlePositions[i * 3] - particlePositions[j * 3];
+    //         var dy = particlePositions[i * 3 + 1] - particlePositions[j * 3 + 1];
+    //         var dz = particlePositions[i * 3 + 2] - particlePositions[j * 3 + 2];
+    //         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    //         if (dist < effectController.minDistance) {
+    //             particleData.numConnections++;
+    //             particleDataB.numConnections++;
+    //             var alpha = 1.0 - dist / effectController.minDistance;
+    //             positions[vertexpos++] = particlePositions[i * 3];
+    //             positions[vertexpos++] = particlePositions[i * 3 + 1];
+    //             positions[vertexpos++] = particlePositions[i * 3 + 2];
+    //             positions[vertexpos++] = particlePositions[j * 3];
+    //             positions[vertexpos++] = particlePositions[j * 3 + 1];
+    //             positions[vertexpos++] = particlePositions[j * 3 + 2];
+    //             colors[colorpos++] = alpha;
+    //             colors[colorpos++] = alpha;
+    //             colors[colorpos++] = alpha;
+    //             colors[colorpos++] = alpha;
+    //             colors[colorpos++] = alpha;
+    //             colors[colorpos++] = alpha;
+    //             numConnected++;
+    //         }
+    //     }
+    // }
+    // 		linesMesh.geometry.setDrawRange( 0, numConnected * 2 );
+		// 		linesMesh.geometry.attributes.position.needsUpdate = true;
+		// 		linesMesh.geometry.attributes.color.needsUpdate = true;
+		// 		pointCloud.geometry.attributes.position.needsUpdate = true;
       this.stats.update()
       requestAnimationFrame(this.animate);
       this.render();
@@ -740,10 +784,12 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 @font-face {
   font-family: "daniel_font";
   src: url("../../static/danielwolberg_font.ttf");
 }
+
 @keyframes customFadeIn {
   from {
     opacity: 0;
@@ -752,6 +798,7 @@ export default {
     opacity: 1;
   }
 }
+
 @keyframes customFadeOut {
   from {
     opacity: 1;
@@ -761,24 +808,22 @@ export default {
   }
 }
 
-#progress {
-  width: 200px;
-  height: 20px;
-  background: #000;
-  border: 2px solid #000;
-}
-#progressBar {
-  width: 200px;
-  height: 20px;
-  background: red;
-  border: none;
-}
-
 .aboutmeinfo {
   opacity: 0;
   font-family: "daniel_font";
   position: absolute;
   line-height: 1.8rem;
+  font-size: 4rem;
+  z-index: 2;
+  margin-left: 40%;
+  margin-top: 30vh;
+}
+
+.contactinfo {
+  opacity: 0;
+  font-family: "daniel_font";
+  position: absolute;
+  line-height: 3rem;
   font-size: 4rem;
   z-index: 2;
   margin-left: 40%;
@@ -850,5 +895,121 @@ button, input[type="submit"], input[type="reset"] {
   animation-fill-mode: forwards;
   -webkit-animation-duration: .4s;
   animation-duration: .4s;
+}
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.clearfix:after {
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+	}
+
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
+section {
+  opacity: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  z-index: 1;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.wrapper {
+  text-align: center;
+}
+
+.wrapper {
+
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.photo-grid {
+  margin: 4rem;
+  margin-top: 8rem;
+  position: relative;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.photo-grid ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /*border: 1px solid #bbb;*/
+}
+
+.photo-grid li {
+  float: left;
+  position: relative;
+  width: 30%;
+  border: 1px solid #bbb;
+  margin: .5rem;
+}
+
+@media only screen and (max-width: 960px) {
+  .container {
+    max-width: 960px;
+  }
+  
+  .photo-grid li {
+    width: 33.333%;
+  }
+  
+  .photo-grid li:last-child {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .container {
+    max-width: 600px;
+  }  
+
+  .photo-grid li {
+    width: 33.333%;
+  }
+  
+  .photo-grid li:last-child {
+    display: inline-block;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .container {
+    max-width: 300px;
+  } 
+
+  .photo-grid li {
+    width: 33.333%;
+  }
+  
+  .photo-grid li:last-child {
+    display: inline-block;
+  }
 }
 </style>
