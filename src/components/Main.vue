@@ -1,5 +1,24 @@
 <template>
 <div>
+  <div class="loading">
+    <div class="loader">
+      <aside class="loader__box loader--left"> 
+        <span class="loader__circle"></span>   
+      </aside>
+      <aside class="loader__box loader--right">
+        <span class="loader__circle"></span>
+      </aside>
+    </div>
+  </div>
+
+    <div class="welcome">
+      <p>enter.</p>
+      <div class="button-container">
+        <div v-on:click="enterSite" class="button"></div>
+        <div class="button-outline"></div>
+      </div>
+    </div>
+
     <div class="aboutmeinfo">
       <p>Hello <br><br> Im Daniel. <br><br>
       I am currently studying <br>at CU denver in archetecture
@@ -15,7 +34,7 @@
     <div v-bind:class="this.howToPrompt">
       <h1>controls.</h1>
       <button v-on:click="setCamera"> ok </button>
-      <p>scroll = zoom, mouse + click = Look around, esc = exit viewer</p>
+      <p>scroll : zoom, mouse , click : Look around, esc : exit viewer</p>
     </div>
     <section class="section">
   <div id="wrapper" class="wrapper">
@@ -83,8 +102,8 @@ export default {
       baseModelXCoord: -27,
       hideTree: true,
       cloudGroup: null,
-      maxParticleCount: 400,
-      particleCount: 400,
+      maxParticleCount: 300,
+      particleCount: 300,
       particlesData: [],
       particlePositions: null,
       r: 1000,
@@ -110,7 +129,7 @@ export default {
       this.renderer.setSize(window.innerWidth, window.innerHeight+4);
       this.controls = new OrbitControls(this.camera);
       this.stats = new Stats()
-			document.body.appendChild( this.stats.dom );
+			// document.body.appendChild( this.stats.dom );
       //
       //// adding container
       //
@@ -127,9 +146,9 @@ export default {
       // scene setup
       //
 
-      this.camera.position.z = 60;
-      this.camera.position.x = 10;
-      this.camera.position.y = 20;
+      this.camera.position.z = 1900;
+      this.camera.position.x = 0;
+      this.camera.position.y = 400;
       
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setClearColor(0xefede7);
@@ -146,7 +165,7 @@ export default {
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.25;
       this.controls.screenSpacePanning = true;
-      this.controls.enabled = true
+      this.controls.enabled = false
       this.controls.update()
       //
       // LINES ****//
@@ -447,7 +466,7 @@ export default {
     onWindowResize: function() {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(window.innerWidth, window.innerHeight+25);
     },
 
     //
@@ -493,7 +512,7 @@ export default {
           case "portfolio":
             this.showBackArrow();
             this.fadeOutText("aboutmeinfo")
-            window.setTimeout(this.showModels,800)
+            window.setTimeout(this.showModels,1200)
             new TWEEN.Tween(this.camera.position)
               .to({x: -10,y: 28,z: 20},800).easing(TWEEN.Easing.Quadratic.Out).start();
             this.camera.updateProjectionMatrix();
@@ -583,6 +602,16 @@ export default {
           break;
       }
     },
+    enterSite: function(){
+      this.rHalf = 10000
+      console.log(this.particlesData)
+      this.particlesData.map(particle => particle.velocity = new THREE.Vector3(-3 + Math.random() * 5, -3 + Math.random() * 6, -3 + Math.random() * 8)) 
+      window.setTimeout(()=>{
+        new TWEEN.Tween(this.camera.position).to({z:100,y:20},4500).easing(TWEEN.Easing.Quadratic.InOut).start().onComplete(()=> this.showBackArrow() )
+      },800)
+      document.querySelector('.welcome').setAttribute("class","welcome quickFadeOut")
+      this.camera.updateProjectionMatrix()
+    },
     hideTreeFunct: function(){
       this.hideTree = false
     },
@@ -639,7 +668,7 @@ export default {
         minDistance: 200,
         limitConnections: true,
         maxConnections: 20,
-        particleCount: 600
+        particleCount: 300
     };
   //in scope : helper, effectiveControler, particles, segments, pMaterial, geometry, material
         var segments = this.maxParticleCount * this.maxParticleCount; // maybe do this calc in global vars
@@ -648,9 +677,7 @@ export default {
         this.colors = new Float32Array(segments * 3);
         var pMaterial = new THREE.PointsMaterial({
             color: 0x000000,
-            size: 3,
-            // blending: THREE.AdditiveBlending,
-            // alpha: .05,
+            size: 2,
             transparent: true,
             opacity: .8,
             sizeAttenuation: false
@@ -780,6 +807,7 @@ export default {
     // Cloud()
     this.threeInit();
     this.cloud()
+    this.hideBackArrow()
     this.animate();
   }
 };
@@ -787,9 +815,67 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.app {
+  margin:0;
+}
+
+.button {
+  z-index: 2;
+  position: absolute;
+  width: 10%;
+  top: 50%;
+  left: 50%;
+  border-radius: 100%;
+  transform: translate(-50%, -50%);
+  background-color: #white;
+  cursor: pointer;
+}
+
+.button:after {
+  content: "";
+  display: block;
+  padding-bottom: 100%;
+}
+
+.button:hover + .button-outline {
+  width: 13%;
+}
+
+.button-outline {
+  opacity: .8;
+  position: absolute;
+  width: 10%;
+  top: 50%;
+  left: 50%;
+  border-radius: 100%;
+  border: 2px solid black;
+  transform: translate(-50%, -50%);
+  transition: all 0.25s cubic-bezier(.7, .11, .32, 2);
+}
+
+.button-outline:after {
+  content: "";
+  display: block;
+  padding-bottom: 100%;
+}
+
+
+.button-container {
+  position: relative;
+  margin: 0 auto;
+  width: 400px;
+}
+
+.button-container:after {
+  content: "";
+  display: block;
+  padding-bottom: 30%;
+}
+
 * {
   cursor: default;
 }
+
 canvas{
   position: fixed;
 }
@@ -817,6 +903,26 @@ canvas{
   }
 }
 
+.welcome {
+  display:flex;
+  align-items: center;
+  flex-direction: column;
+  opacity: 1;
+  font-family: "daniel_font";
+  position: absolute;
+  line-height: 1.8rem;
+  font-size: 6rem;
+  z-index: 3;
+  margin-left: 37%;
+  margin-top: 10vh;
+}
+
+.welcome p {
+  opacity:.86;
+
+}
+
+
 .aboutmeinfo {
   opacity: 0;
   font-family: "daniel_font";
@@ -834,9 +940,7 @@ canvas{
   position: absolute;
   line-height: 3rem;
   font-size: 4rem;
-  z-index: 2;
   margin-left: 40%;
-  margin-top: 30vh;
 }
 
 button, input[type="submit"], input[type="reset"] {
@@ -856,8 +960,8 @@ button, input[type="submit"], input[type="reset"] {
   opacity: 0;
   font-family: "daniel_font";
   position: fixed;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -878,8 +982,8 @@ button, input[type="submit"], input[type="reset"] {
 }
 
 .customFadeOut {
-  -webkit-animation: customFadeIn;
-  animation: customFadeIn;
+  -webkit-animation: customFadeOut;
+  animation: customFadeOut;
   -webkit-animation-fill-mode: forwards;
   animation-fill-mode: forwards;
   -webkit-animation-duration: 2.5s;

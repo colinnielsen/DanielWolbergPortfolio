@@ -16,8 +16,10 @@ export default {
 </script>
 
 <style>
-#id {
+#app {
   margin: 0;
+  width: 100%;
+  height: 100%;
 }
 body {
   margin: 0;
