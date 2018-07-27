@@ -11,7 +11,7 @@
     </div>
   </div>
 
-    <div class="welcome">
+    <div class="welcome customFadeIn">
       <p>enter.</p>
       <div class="button-container">
         <div v-on:click="enterSite" class="button"></div>
@@ -102,8 +102,8 @@ export default {
       baseModelXCoord: -27,
       hideTree: true,
       cloudGroup: null,
-      maxParticleCount: 300,
-      particleCount: 300,
+      maxParticleCount: 250,
+      particleCount: 250,
       particlesData: [],
       particlePositions: null,
       r: 1000,
@@ -134,10 +134,10 @@ export default {
       //// adding container
       //
 
-      // var manager = new THREE.LoadingManager();
-      // manager.onProgress = function ( item, loaded, total ) {
-      //   console.log((loaded / total * 100) + '%');
-      // }
+      var manager = new THREE.LoadingManager();
+      manager.onProgress = function ( item, loaded, total ) {
+        console.log((loaded / total * 100) + '%');
+      }
       
       var container = document.createElement("div");
       document.body.appendChild(container);
@@ -403,7 +403,7 @@ export default {
       // // // M O D E L  L O A D E R
       //    //
 
-      var objectLoader = new THREE.ObjectLoader();
+      var objectLoader = new THREE.ObjectLoader( manager );
       this.modelGroup = new THREE.Group();
       fetch('https://capstonebackend-1.herokuapp.com/models')
       .then(response => response.json())
@@ -603,12 +603,15 @@ export default {
       }
     },
     enterSite: function(){
-      this.rHalf = 10000
+      this.rHalf = 5000
       console.log(this.particlesData)
       this.particlesData.map(particle => particle.velocity = new THREE.Vector3(-3 + Math.random() * 5, -3 + Math.random() * 6, -3 + Math.random() * 8)) 
       window.setTimeout(()=>{
-        new TWEEN.Tween(this.camera.position).to({z:100,y:20},4500).easing(TWEEN.Easing.Quadratic.InOut).start().onComplete(()=> this.showBackArrow() )
+        new TWEEN.Tween(this.camera.position).to({z:100,y:0,x:15},4500).easing(TWEEN.Easing.Quadratic.InOut).start().onComplete(()=> this.showBackArrow())
+         new TWEEN.Tween(this.camera.rotation)
+              .to({x: 0,y: 0,z: 0},4500).easing(TWEEN.Easing.Quadratic.InOut).start()
       },800)
+      
       document.querySelector('.welcome').setAttribute("class","welcome quickFadeOut")
       this.camera.updateProjectionMatrix()
     },
@@ -677,7 +680,7 @@ export default {
         this.colors = new Float32Array(segments * 3);
         var pMaterial = new THREE.PointsMaterial({
             color: 0x000000,
-            size: 2,
+            size: 3,
             transparent: true,
             opacity: .8,
             sizeAttenuation: false
@@ -907,7 +910,7 @@ canvas{
   display:flex;
   align-items: center;
   flex-direction: column;
-  opacity: 1;
+  opacity: 0;
   font-family: "daniel_font";
   position: absolute;
   line-height: 1.8rem;
