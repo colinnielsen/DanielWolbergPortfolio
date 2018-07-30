@@ -16,3 +16,7 @@ Galvanize capstone project made with Daniel Wolberg's archetectural sketches and
 * Maybe web vr integration! 🤓
 
 ## Demo!
+
+
+### license 
+All Rights Reserved
