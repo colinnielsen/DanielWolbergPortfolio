@@ -1,22 +1,17 @@
 <template>
 <div>
-  <div class="loading">
-    <div class="loader">
-      <aside class="loader__box loader--left"> 
-        <span class="loader__circle"></span>   
-      </aside>
-      <aside class="loader__box loader--right">
-        <span class="loader__circle"></span>
-      </aside>
-    </div>
-  </div>
+  <div class="holder">
+  <p>d.w.</p> 
+  <div class="preloader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</div>
 
-    <div class="welcome customFadeIn">
-      <p>enter.</p>
+    <div class="welcome">
+      <p class="enter">enter.</p>
       <div class="button-container">
         <div v-on:click="enterSite" class="button"></div>
         <div class="button-outline"></div>
       </div>
+      <p class="clearthemind"> clear the mind. </p>
     </div>
 
     <div class="aboutmeinfo">
@@ -128,16 +123,19 @@ export default {
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight+4);
       this.controls = new OrbitControls(this.camera);
-      this.stats = new Stats()
+      this.stats = new Stats()    
 			// document.body.appendChild( this.stats.dom );
       //
       //// adding container
       //
 
-      var manager = new THREE.LoadingManager();
-      manager.onProgress = function ( item, loaded, total ) {
-        console.log((loaded / total * 100) + '%');
-      }
+      var manager = new THREE.LoadingManager( () => {
+		    const loadingScreen = document.querySelector('.holder');
+		    loadingScreen.classList.add('quickFadeOut');
+        
+		
+		    document.querySelector('.welcome').setAttribute("class","welcome customFadeIn")
+	    } );
       
       var container = document.createElement("div");
       document.body.appendChild(container);
@@ -604,16 +602,26 @@ export default {
     },
     enterSite: function(){
       this.rHalf = 5000
-      console.log(this.particlesData)
-      this.particlesData.map(particle => particle.velocity = new THREE.Vector3(-3 + Math.random() * 5, -3 + Math.random() * 6, -3 + Math.random() * 8)) 
+      this.particlesData.map(particle => particle.velocity = new THREE.Vector3(-2 + Math.random() * 5, -2 + Math.random() * 6, -2 + Math.random() * 8)) 
       window.setTimeout(()=>{
-        new TWEEN.Tween(this.camera.position).to({z:100,y:0,x:15},4500).easing(TWEEN.Easing.Quadratic.InOut).start().onComplete(()=> this.showBackArrow())
-         new TWEEN.Tween(this.camera.rotation)
+        new TWEEN.Tween(this.camera.position).to({z:100,y:0,},4500).easing(TWEEN.Easing.Quadratic.InOut).start().onComplete(()=> this.showBackArrow())
+        new TWEEN.Tween(this.camera.rotation)
               .to({x: 0,y: 0,z: 0},4500).easing(TWEEN.Easing.Quadratic.InOut).start()
-      },800)
+      },3500)
       
-      document.querySelector('.welcome').setAttribute("class","welcome quickFadeOut")
+      document.querySelector('.enter').setAttribute("class","enter quickFadeOut")
+      document.querySelector('.button-container').setAttribute("class","button-container quickFadeOut")
+      document.querySelector('.clearthemind').setAttribute("class","clearthemind quickFadeIn")
+      // this.fadeInText("clearthemind")
+
+      window.setTimeout(()=> {
+        this.fadeOutIntro()
+      },5000)
+
       this.camera.updateProjectionMatrix()
+    },
+    fadeOutIntro: function(){
+      document.querySelector(".clearthemind").setAttribute("class","clearthemind aFadeOut")
     },
     hideTreeFunct: function(){
       this.hideTree = false
@@ -752,9 +760,9 @@ export default {
             this.particlePositions[i * 3 + 1] += particleData.velocity.y;
             this.particlePositions[i * 3 + 2] += particleData.velocity.z;
             // boundaries
-            if (this.particlePositions[i * 3 + 1] < -this.rHalf || this.particlePositions[i * 3 + 1] > this.rHalf)
+            if (this.particlePositions[i * 3 + 1] < -this.rHalf  || this.particlePositions[i * 3 + 1] > this.rHalf)
                 particleData.velocity.y = -particleData.velocity.y;
-            if (this.particlePositions[i * 3] < -this.rHalf || this.particlePositions[i * 3] > this.rHalf)
+            if (this.particlePositions[i * 3] < -this.rHalf * (Math.PI/4) || this.particlePositions[i * 3] > this.rHalf * (Math.PI/4) )
                 particleData.velocity.x = -particleData.velocity.x;
             if (this.particlePositions[i * 3 + 2] < -this.rHalf || this.particlePositions[i * 3 + 2] > this.rHalf)
                 particleData.velocity.z = -particleData.velocity.z;
@@ -818,6 +826,309 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+@font-face {
+  font-family: "daniel_font";
+  src: url("../../static/danielwolberg_font.ttf");
+}
+
+.holder {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: #efede7;
+}
+.holder p{
+  position:absolute;
+  font-family: daniel_font;
+  top: 30%;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  font-size: 6rem;
+  z-index: 4;
+}
+.preloader {
+  /* size */
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  animation: rotatePreloader 2s infinite ease-in;
+}
+
+@keyframes rotatePreloader {
+  0% {
+    transform: translateX(-50%) translateY(-50%) rotateZ(0deg);
+  }
+  100% {
+    transform: translateX(-50%) translateY(-50%) rotateZ(-360deg);
+  }
+}
+.preloader div {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.preloader div:before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  width: 10%;
+  height: 10%;
+  background-color: #000;
+  transform: translateX(-50%);
+  border-radius: 50%;
+}
+.preloader div:nth-child(1) {
+  transform: rotateZ(0deg);
+  animation: rotateCircle1 2s infinite linear;
+  z-index: 9;
+}
+@keyframes rotateCircle1 {
+  0% {
+    opacity: 0;
+  }
+  0% {
+    opacity: 1;
+    transform: rotateZ(36deg);
+  }
+  7% {
+    transform: rotateZ(0deg);
+  }
+  57% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(2) {
+  transform: rotateZ(36deg);
+  animation: rotateCircle2 2s infinite linear;
+  z-index: 8;
+}
+@keyframes rotateCircle2 {
+  5% {
+    opacity: 0;
+  }
+  5.0001% {
+    opacity: 1;
+    transform: rotateZ(0deg);
+  }
+  12% {
+    transform: rotateZ(-36deg);
+  }
+  62% {
+    transform: rotateZ(-36deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(3) {
+  transform: rotateZ(72deg);
+  animation: rotateCircle3 2s infinite linear;
+  z-index: 7;
+}
+@keyframes rotateCircle3 {
+  10% {
+    opacity: 0;
+  }
+  10.0002% {
+    opacity: 1;
+    transform: rotateZ(-36deg);
+  }
+  17% {
+    transform: rotateZ(-72deg);
+  }
+  67% {
+    transform: rotateZ(-72deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(4) {
+  transform: rotateZ(108deg);
+  animation: rotateCircle4 2s infinite linear;
+  z-index: 6;
+}
+@keyframes rotateCircle4 {
+  15% {
+    opacity: 0;
+  }
+  15.0003% {
+    opacity: 1;
+    transform: rotateZ(-72deg);
+  }
+  22% {
+    transform: rotateZ(-108deg);
+  }
+  72% {
+    transform: rotateZ(-108deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(5) {
+  transform: rotateZ(144deg);
+  animation: rotateCircle5 2s infinite linear;
+  z-index: 5;
+}
+@keyframes rotateCircle5 {
+  20% {
+    opacity: 0;
+  }
+  20.0004% {
+    opacity: 1;
+    transform: rotateZ(-108deg);
+  }
+  27% {
+    transform: rotateZ(-144deg);
+  }
+  77% {
+    transform: rotateZ(-144deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(6) {
+  transform: rotateZ(180deg);
+  animation: rotateCircle6 2s infinite linear;
+  z-index: 4;
+}
+@keyframes rotateCircle6 {
+  25% {
+    opacity: 0;
+  }
+  25.0005% {
+    opacity: 1;
+    transform: rotateZ(-144deg);
+  }
+  32% {
+    transform: rotateZ(-180deg);
+  }
+  82% {
+    transform: rotateZ(-180deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(7) {
+  transform: rotateZ(216deg);
+  animation: rotateCircle7 2s infinite linear;
+  z-index: 3;
+}
+@keyframes rotateCircle7 {
+  30% {
+    opacity: 0;
+  }
+  30.0006% {
+    opacity: 1;
+    transform: rotateZ(-180deg);
+  }
+  37% {
+    transform: rotateZ(-216deg);
+  }
+  87% {
+    transform: rotateZ(-216deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(8) {
+  transform: rotateZ(252deg);
+  animation: rotateCircle8 2s infinite linear;
+  z-index: 2;
+}
+@keyframes rotateCircle8 {
+  35% {
+    opacity: 0;
+  }
+  35.0007% {
+    opacity: 1;
+    transform: rotateZ(-216deg);
+  }
+  42% {
+    transform: rotateZ(-252deg);
+  }
+  92% {
+    transform: rotateZ(-252deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(9) {
+  transform: rotateZ(288deg);
+  animation: rotateCircle9 2s infinite linear;
+  z-index: 1;
+}
+@keyframes rotateCircle9 {
+  40% {
+    opacity: 0;
+  }
+  40.0008% {
+    opacity: 1;
+    transform: rotateZ(-252deg);
+  }
+  47% {
+    transform: rotateZ(-288deg);
+  }
+  97% {
+    transform: rotateZ(-288deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+.preloader div:nth-child(10) {
+  transform: rotateZ(324deg);
+  animation: rotateCircle10 2s infinite linear;
+  z-index: 0;
+}
+@keyframes rotateCircle10 {
+  45% {
+    opacity: 0;
+  }
+  45.0009% {
+    opacity: 1;
+    transform: rotateZ(-288deg);
+  }
+  52% {
+    transform: rotateZ(-324deg);
+  }
+  102% {
+    transform: rotateZ(-324deg);
+  }
+  100% {
+    transform: rotateZ(-324deg);
+    opacity: 1;
+  }
+}
+
+
 .app {
   margin:0;
 }
@@ -883,10 +1194,7 @@ canvas{
   position: fixed;
 }
 
-@font-face {
-  font-family: "daniel_font";
-  src: url("../../static/danielwolberg_font.ttf");
-}
+
 
 @keyframes customFadeIn {
   from {
@@ -907,6 +1215,7 @@ canvas{
 }
 
 .welcome {
+  width: 400px;
   display:flex;
   align-items: center;
   flex-direction: column;
@@ -914,15 +1223,23 @@ canvas{
   font-family: "daniel_font";
   position: absolute;
   line-height: 1.8rem;
-  font-size: 6rem;
   z-index: 3;
-  margin-left: 37%;
+  left: 50%;
+  margin-left: -200px;
   margin-top: 10vh;
 }
 
-.welcome p {
+.enter {
+  font-size: 6rem;
   opacity:.86;
+  opacity: 1;
+}
 
+.clearthemind {
+  font-size: 4rem;
+  opacity:.86;
+  margin-top: -45px;
+  opacity: 0;
 }
 
 
@@ -944,6 +1261,7 @@ canvas{
   line-height: 3rem;
   font-size: 4rem;
   margin-left: 40%;
+  margin-top: 30vh;
 }
 
 button, input[type="submit"], input[type="reset"] {
@@ -995,13 +1313,22 @@ button, input[type="submit"], input[type="reset"] {
   animation-delay: .8s;
 }
 
+.aFadeOut {
+  -webkit-animation: customFadeOut;
+  animation: customFadeOut;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  -webkit-animation-duration: 2.5s;
+  animation-duration: 2.5s;
+}
+
 .quickFadeIn {
   -webkit-animation: customFadeIn;
   animation: customFadeIn;
   -webkit-animation-fill-mode: forwards;
   animation-fill-mode: forwards;
-  -webkit-animation-duration: .4s;
-  animation-duration: .4s;
+  -webkit-animation-duration: 1.5s;
+  animation-duration: 1.5s;
 }
 
 .quickFadeOut {
