@@ -1,21 +1,18 @@
-# capstone
+# Daniel Wolberg Archetecture Portfolio ✒️🗼
+This app is a 3D environmemnt that the user can navigate to explore an artist and their works. Also included is a server connected to s3 where the artist can easily upload new models without touching the code.
+Galvanize capstone project made with Daniel Wolberg's archetectural sketches and models. 
 
-> capstone
+## Tech Used
+* ThreeJS
+* Vue
+* S3
+* Express
+* knex
 
-## Build Setup
+## Future Updates
+* More models!
+* Refined model viewer.
+* Orthographic camera controls.
+* Maybe web vr integration! 🤓
 
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## Demo!
