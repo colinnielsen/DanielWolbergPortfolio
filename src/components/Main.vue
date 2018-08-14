@@ -1,9 +1,9 @@
 <template>
 <div>
   <div class="holder">
-  <p>d.w.</p> 
-  <div class="preloader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-</div>
+    <p>d.w.</p> 
+    <div class="preloader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
 
     <div class="welcome">
       <p class="enter">enter.</p>
@@ -21,16 +21,19 @@
       feel free to poke around !
       </p>
     </div>
+
     <div class="contactinfo">
       <p> tel - (720) 537-4170 <p>
       <p> email - dwwolberg@g </p>
       <p> ig - @danielwolberg </p>
     </div>
+
     <div v-bind:class="this.howToPrompt">
       <h1>controls.</h1>
       <button v-on:click="setCamera"> ok </button>
       <p>scroll : zoom, mouse , click : Look around, esc : exit viewer</p>
     </div>
+
     <section class="section">
   <div id="wrapper" class="wrapper">
   <div id="container" class="container">
@@ -90,7 +93,7 @@ export default {
       portfolio: null,
       modelGroup: null,
       hideObjects: 1,
-      howToPrompt: "howtouse",
+      howToPrompt: "howtouse displayNone",
       atSketches: false,
       atPortfolio: false,
       instructionsShown: false,
@@ -642,7 +645,7 @@ export default {
       document.querySelector(`.${target}`).setAttribute("class", `${target} customFadeIn`);
     },
     fadeOutText: function(target){
-      document.querySelector(`.${target}`).setAttribute("class", `${target} `);
+      document.querySelector(`.${target}`).setAttribute("class", `${target} quickFadeOut`);
     },
     setCamera: function(){
       if(!this.instructionsShown){
@@ -815,7 +818,6 @@ export default {
     }
   },
   mounted() {
-    // Cloud()
     this.threeInit();
     this.cloud()
     this.hideBackArrow()
@@ -1244,6 +1246,7 @@ canvas{
 
 
 .aboutmeinfo {
+  visibility: hidden;
   opacity: 0;
   font-family: "daniel_font";
   position: absolute;
@@ -1279,11 +1282,11 @@ button, input[type="submit"], input[type="reset"] {
 .howtouse{
   background-color: lightgrey;
   opacity: 0;
+  display: flex;
   font-family: "daniel_font";
   position: fixed;
   width: 100vw;
   height: 100vh;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1291,15 +1294,14 @@ button, input[type="submit"], input[type="reset"] {
   z-index: 2;
 }
 
+.displayNone {
+  display: none;
+}
+
 .customFadeIn {
-  -webkit-animation: customFadeIn;
-  animation: customFadeIn;
-  -webkit-animation-fill-mode: forwards;
-  animation-fill-mode: forwards;
-  -webkit-animation-duration: 2.5s;
-  animation-duration: 2.5s;
-  -webkit-animation-delay: .8s;
-  animation-delay: .8s;
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 2s, opacity 2s linear;
 }
 
 .customFadeOut {
@@ -1323,21 +1325,15 @@ button, input[type="submit"], input[type="reset"] {
 }
 
 .quickFadeIn {
-  -webkit-animation: customFadeIn;
-  animation: customFadeIn;
-  -webkit-animation-fill-mode: forwards;
-  animation-fill-mode: forwards;
-  -webkit-animation-duration: 1.5s;
-  animation-duration: 1.5s;
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1s linear;
 }
 
 .quickFadeOut {
-  -webkit-animation: customFadeOut;
-  animation: customFadeOut;
-  -webkit-animation-fill-mode: forwards;
-  animation-fill-mode: forwards;
-  -webkit-animation-duration: .4s;
-  animation-duration: .4s;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 1s, opacity .3s linear;
 }
 * {
   -moz-box-sizing: border-box;
