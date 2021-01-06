@@ -8,7 +8,7 @@ Galvanize capstone project made with Daniel Wolberg's archetectural sketches and
 * S3
 * Express
 * knex
-
+ 
 ## Future Updates
 * More models!
 * Refined model viewer.
